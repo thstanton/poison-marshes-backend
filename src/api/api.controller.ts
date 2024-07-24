@@ -24,16 +24,16 @@ export class ApiController {
         to: email,
         subject: 'Welcome Truthseeker',
         text: `
-        Dear Truthseeker, 
-        We need your help. There is much to learn.
-        Go to this address to begin your journey: ${process.env.REGISTER_URL}?token=${token} 
-        From, The Poison Marshes Team
+          Dear Truthseeker, 
+          We need your help. There is much to learn.
+          Go to this address to begin your journey: ${process.env.REGISTER_URL}?token=${token} 
+          From, The Poison Marshes Team
         `,
         html: `
-        <p>Dear Truthseeker,</p>
-        <p>We need your help. There is much to learn.</p>
-        <a href="${process.env.REGISTER_URL}?token=${token}">Click here to begin your journey to enlightenment.</a>
-        <p>From, The Poison Marshes Team</p>
+          <p>Dear Truthseeker,</p>
+          <p>We need your help. There is much to learn.</p>
+          <a href="${process.env.REGISTER_URL}?token=${token}">Click here to begin your journey to enlightenment.</a>
+          <p>From, The Poison Marshes Team</p>
         `,
       });
     }
@@ -50,17 +50,17 @@ export class ApiController {
           to: email,
           subject: 'Your Path to Enlightenment Has Begun',
           text: `
-              Dear Truthseeker,
-              Well met. You have taken your first step towards the truth.
-              The village needs you.
-              Further instructions will follow when the festival begins.
-              `,
+            Dear Truthseeker,
+            Well met. You have taken your first step towards the truth.
+            The village needs you.
+            Further instructions will follow when the festival begins.
+          `,
           html: `
-              <p>Dear Truthseeker,</p>
-              <p>Well met. You have taken your first step towards the truth.</p>
-              <p>The village needs you.</p>
-              <p>Further instructions will follow when the festival begins.</p>
-              `,
+            <p>Dear Truthseeker,</p>
+            <p>Well met. You have taken your first step towards the truth.</p>
+            <p>The village needs you.</p>
+            <p>Further instructions will follow when the festival begins.</p>
+          `,
         });
         return Redirect(`${process.env.FRONTEND_URL}/new-user`);
       }
