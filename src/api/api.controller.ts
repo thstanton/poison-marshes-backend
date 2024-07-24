@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Query, Redirect, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ResendService } from 'src/modules/resend/resend.service';
 import { UsersService } from 'src/modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { EmailDto } from 'src/modules/resend/email.dto';
 
 @Controller('api')
 export class ApiController {
@@ -70,5 +81,11 @@ export class ApiController {
   @Get('users')
   async users() {
     return this.userService.getAll();
+  }
+
+  @Post('email-all-users')
+  @UsePipes(new ValidationPipe())
+  async emailAllUsers(@Body() email: EmailDto) {
+    await this.resendService.emailAllUsers(email);
   }
 }
