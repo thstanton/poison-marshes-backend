@@ -40,6 +40,7 @@ export class ApiController {
   }
 
   @Get('register')
+  @Redirect(`${process.env.FRONTEND_URL}/new-user`)
   async register(@Query('token') token: string) {
     const { email } = this.jwtService.verify(token);
     if (email) {
@@ -62,7 +63,6 @@ export class ApiController {
             <p>Further instructions will follow when the festival begins.</p>
           `,
         });
-        return Redirect(`${process.env.FRONTEND_URL}/new-user`);
       }
     }
   }
