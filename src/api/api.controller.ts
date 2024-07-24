@@ -40,7 +40,7 @@ export class ApiController {
   }
 
   @Get('register')
-  @Redirect(`${process.env.FRONTEND_URL}/new-user`)
+  @Redirect(`${process.env.FRONTEND_URL}/signed-up`)
   async register(@Query('token') token: string) {
     const { email } = this.jwtService.verify(token);
     if (email) {
