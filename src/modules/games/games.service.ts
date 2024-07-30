@@ -40,7 +40,7 @@ export class GamesService {
     });
   }
 
-  async levelUp(accountId: number, solution: string) {
+  async levelUp(accountId: number, solution?: string) {
     const game = await this.repository.getByAccountWithLevelAndUser(accountId);
     if (
       this.levelsService.trySolution(game.levelId, solution) ||
