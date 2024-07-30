@@ -13,6 +13,15 @@ export class LevelsRepository {
     return this.prisma.level.findUnique({ where: { id } });
   }
 
+  async levelHasEmail(levelId: number) {
+    return this.prisma.level.findUnique({
+      where: { id: levelId },
+      include: {
+        email: true,
+      },
+    });
+  }
+
   async getMaxLevel() {
     return this.prisma.level.findFirst({
       orderBy: {

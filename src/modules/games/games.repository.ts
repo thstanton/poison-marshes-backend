@@ -13,6 +13,18 @@ export class GamesRepository {
     });
   }
 
+  async getByAccountWithLevelAndUser(accountId: number) {
+    return this.prisma.game.findUnique({
+      where: { accountId },
+      include: {
+        level: true,
+        account: {
+          include: { user: true },
+        },
+      },
+    });
+  }
+
   async getAll() {
     return this.prisma.game.findMany();
   }
