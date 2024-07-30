@@ -5,3 +5,13 @@ export type AccountWithUser = Prisma.AccountGetPayload<{
 }>;
 
 export type AccountWithUserWithoutPassword = Omit<AccountWithUser, 'password'>;
+
+export type GameWithAccountAndUser = Prisma.GameGetPayload<{
+  include: {
+    account: {
+      include: {
+        user: true;
+      };
+    };
+  };
+}>;
