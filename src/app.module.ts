@@ -6,6 +6,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { LevelsModule } from './modules/levels/levels.module';
 import { GamesModule } from './modules/games/games.module';
 import { AuthModule } from './auth/auth.module';
+import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
     LevelsModule,
     GamesModule,
     AuthModule,
+    QrCodesModule,
   ],
   controllers: [],
   providers: [],
