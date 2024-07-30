@@ -1,11 +1,24 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UsersModule } from '../modules/users/users.module';
-import { BcryptService } from './bcrypt/bcrypt.service';
+import { AccountsModule } from 'src/modules/accounts/accounts.module';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './local/local.strategy';
+import { AuthController } from './auth.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { BcryptModule } from './bcrypt/bcrypt.module';
 
 @Module({
-  imports: [UsersModule],
-  providers: [AuthService, BcryptService],
-  exports: [AuthService, BcryptService],
+  imports: [
+    BcryptModule,
+    AccountsModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '15m' },
+    }),
+  ],
+  providers: [AuthService, LocalStrategy],
+  controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}
