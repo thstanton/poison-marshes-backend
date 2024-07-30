@@ -21,7 +21,10 @@ export class GamesService {
 
   async levelUp(accountId: number, solution: string) {
     const game = await this.repository.getByAccountWithLevelAndUser(accountId);
-    if (this.levelsService.trySolution(game.levelId, solution)) {
+    if (
+      this.levelsService.trySolution(game.levelId, solution) ||
+      !game.level.solution
+    ) {
       const newLevel = await this.repository.increaseLevel(game.levelId);
       await this.levelsService.initialiseLevel(
         newLevel.id,
