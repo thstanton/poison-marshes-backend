@@ -44,4 +44,8 @@ export class AccountsRepository {
       include: { user: true },
     });
   }
+
+  async getAll(params?: { select?: Prisma.AccountSelect }) {
+    return this.prisma.account.findMany({ ...params });
+  }
 }

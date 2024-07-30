@@ -4,10 +4,11 @@ import { AccountCreateDto } from './account-create.dto';
 
 @Controller('accounts')
 export class AccountsController {
-  constructor(private accountsService: AccountsService) {}
+  constructor(private readonly accountsService: AccountsService) {}
 
   @Post('register')
-  async register(@Body() { userId, password, name }: AccountCreateDto) {
+  async register(@Body() accountCreateDto: AccountCreateDto) {
+    const { userId, password, name } = accountCreateDto;
     return this.accountsService.create(userId, password, name);
   }
 }

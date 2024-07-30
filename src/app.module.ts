@@ -6,6 +6,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { LevelsModule } from './modules/levels/levels.module';
 import { GamesModule } from './modules/games/games.module';
 import { AuthModule } from './auth/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
     LevelsModule,
     GamesModule,
     AuthModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],

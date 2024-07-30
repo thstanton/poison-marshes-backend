@@ -48,4 +48,12 @@ export class AccountsService {
       },
     });
   }
+
+  async getAllAccountIds() {
+    return this.repository.getAll({
+      select: {
+        id: true,
+      },
+    });
+  }
 }

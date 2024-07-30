@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
+import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
 
 @Injectable()
 export class GamesRepository {
@@ -25,8 +26,20 @@ export class GamesRepository {
     });
   }
 
-  async getAll() {
-    return this.prisma.game.findMany();
+  async getAll(params?: {
+    select?: Prisma.GameSelect;
+    where?: Prisma.GameWhereInput;
+  }): Promise<GameWithAccountAndUser[]> {
+    return this.prisma.game.findMany({
+      ...params,
+      include: {
+        account: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    }) as Promise<GameWithAccountAndUser[]>;
   }
 
   async getAllByLevel() {
