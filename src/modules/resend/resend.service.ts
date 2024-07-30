@@ -37,17 +37,4 @@ export class ResendService extends Resend {
       });
     }
   }
-
-  async newLevelEmailSend(levelId: number, to: string) {
-    const emailData = await this.repository.getByLevel(levelId);
-    if (emailData && to) {
-      this.emails.send({
-        to,
-        from: emailData.from,
-        subject: emailData.subject,
-        text: emailData.text,
-        html: emailData.html,
-      });
-    }
-  }
 }
