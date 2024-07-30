@@ -20,4 +20,15 @@ export class UsersRepository {
   async getAll(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
+
+  async getById(id: number) {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async getByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: { account: true },
+    });
+  }
 }
