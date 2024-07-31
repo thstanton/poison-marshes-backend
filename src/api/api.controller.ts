@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Query,
   Redirect,
@@ -22,6 +23,8 @@ export class ApiController {
     private readonly resendService: ResendService,
     private readonly jwtService: JwtService,
   ) {}
+
+  private readonly logger = new Logger();
 
   @Post('new-user')
   async newUserConfirm(@Req() req: Request) {
@@ -54,8 +57,10 @@ export class ApiController {
   @Redirect(`${process.env.FRONTEND_URL}/signed-up`)
   async register(@Query('token') token: string) {
     const { email } = this.jwtService.verify(token);
+    this.logger.debug(`Attempting to register user ${email}`);
     if (email) {
       const user = await this.userService.registerUser({ email });
+      this.logger.debug(`User ${user.id} registered.`);
       if (user) {
         await this.resendService.emails.send({
           from: 'truthseeker <poisonmarshestruth@cliki.in>',
@@ -98,8 +103,10 @@ export class ApiController {
   @Post('resend-confirmation')
   async resendConfirmation(@Req() req: Request) {
     const { email } = req.body;
-    console.log(email);
     const token = this.jwtService.sign({ email }, { expiresIn: '1d' });
+    this.logger.debug(
+      `Confirmation email sent to ${email} with token: ${token}`,
+    );
     const user = await this.userService.findOne(email);
     if (user) {
       await this.resendService.emails.send({
