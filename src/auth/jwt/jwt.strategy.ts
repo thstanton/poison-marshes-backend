@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { ExtractJwt } from 'passport-jwt';
+import { JwtPayload } from 'src/types/custom-types';
+import { AuthService } from '../auth.service';
 
 Injectable();
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -13,7 +15,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
+  // Checks account exists and returns the content of the token if the token has been successfully verified
+  async validate(payload: JwtPayload) {
+    const { email, sub } = payload;
+
+    const accountId = parseInt(sub);
+    const account = await this.authService.validateAccountById(accountId);
+    if (!account) {
+      throw new UnauthorizedException('Account not found');
+    }
+
+    return { accountId: sub, email };
   }
 }

@@ -28,8 +28,12 @@ export class AccountsService {
     });
   }
 
-  async findOne(email: string) {
-    return this.repository.getOneByEmail(email);
+  async findOneByEmail(email: string) {
+    return this.repository.getOne({ where: { user: { email } } });
+  }
+
+  async findOneByAccountId(accountId: number) {
+    return this.repository.getOne({ where: { id: accountId } });
   }
 
   async storeRefreshToken(accountId: number, refreshToken: string) {

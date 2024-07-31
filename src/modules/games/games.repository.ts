@@ -14,6 +14,10 @@ export class GamesRepository {
     });
   }
 
+  async getCurrentLevel(params: { where: Prisma.GameWhereUniqueInput }) {
+    return this.prisma.game.findUnique({ ...params, include: { level: true } });
+  }
+
   async getByAccountWithLevelAndUser(accountId: number) {
     return this.prisma.game.findUnique({
       where: { accountId },
