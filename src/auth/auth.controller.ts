@@ -1,7 +1,8 @@
 import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { GuardedRequest, LocalAuthGuard } from './local/local-auth.guard';
+import { LocalAuthGuard } from './local/local-auth.guard';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
+import { GuardedRequest } from 'src/types/custom-types';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +11,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: GuardedRequest) {
-    return this.authService.login(req.user);
+    return this.authService.login(req.account);
   }
 
   @Post('refresh')
