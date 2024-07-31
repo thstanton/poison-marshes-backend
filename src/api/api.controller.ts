@@ -88,4 +88,37 @@ export class ApiController {
   async emailAllUsers(@Body() email: EmailDto) {
     await this.resendService.emailAllUsers(email);
   }
+
+  @Post('email-single-user')
+  @UsePipes(new ValidationPipe())
+  async emailSingleUser(@Body() email: EmailDto) {
+    await this.resendService.emailSingleUser(email);
+  }
+
+  @Post('resend-confirmation')
+  async resendConfirmation(@Req() req: Request) {
+    const { email } = req.body;
+    console.log(email);
+    const token = this.jwtService.sign({ email }, { expiresIn: '1d' });
+    const user = await this.userService.findOne(email);
+    if (user) {
+      await this.resendService.emails.send({
+        from: 'truthseeker <poisonmarshestruth@cliki.in>',
+        to: email,
+        subject: 'Welcome Truthseeker',
+        text: `
+          Dear Truthseeker, 
+          We need your help. There is much to learn.
+          Go to this address to begin your journey: ${process.env.REGISTER_URL}?token=${token} 
+          From, The Poison Marshes Team
+        `,
+        html: `
+          <p>Dear Truthseeker,</p>
+          <p>We need your help. There is much to learn.</p>
+          <a href="${process.env.REGISTER_URL}?token=${token}">Click here to begin your journey to enlightenment.</a>
+          <p>From, The Poison Marshes Team</p>
+        `,
+      });
+    }
+  }
 }
