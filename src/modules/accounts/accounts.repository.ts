@@ -22,19 +22,6 @@ export class AccountsRepository {
     return this.prisma.account.delete(params);
   }
 
-  async getOneByEmail(email: string) {
-    return this.prisma.account.findFirst({
-      where: {
-        user: {
-          email,
-        },
-      },
-      include: {
-        user: true,
-      },
-    });
-  }
-
   async getOne(params: {
     where: Prisma.AccountWhereInput;
     select?: Prisma.AccountSelect;

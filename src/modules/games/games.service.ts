@@ -46,6 +46,10 @@ export class GamesService {
       this.levelsService.trySolution(game.levelId, solution) ||
       !game.level.solution
     ) {
+      const maxLevel: number = await this.levelsService.getMaxLevel();
+      if (game.levelId === maxLevel) {
+        throw new Error('Max level reached');
+      }
       const newLevel = await this.repository.increaseLevel(game.levelId);
       await this.levelsService.initialiseLevel(
         newLevel.id,
@@ -55,5 +59,9 @@ export class GamesService {
     } else {
       return { message: 'Incorrect solution' };
     }
+  }
+
+  async getCurrentLevel(accountId: number) {
+    return this.repository.getCurrentLevel({ where: { id: accountId } });
   }
 }
