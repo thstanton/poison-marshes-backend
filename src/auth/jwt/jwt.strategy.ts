@@ -5,7 +5,7 @@ import { ExtractJwt } from 'passport-jwt';
 import { JwtPayload } from 'src/types/custom-types';
 import { AuthService } from '../auth.service';
 
-Injectable();
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
     super({
@@ -17,14 +17,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // Checks account exists and returns the content of the token if the token has been successfully verified
   async validate(payload: JwtPayload) {
-    const { email, sub } = payload;
-
+    const { sub } = payload;
     const accountId = parseInt(sub);
+
     const account = await this.authService.validateAccountById(accountId);
+
     if (!account) {
       throw new UnauthorizedException('Account not found');
     }
 
-    return { accountId: sub, email };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = account;
+
+    return result;
   }
 }

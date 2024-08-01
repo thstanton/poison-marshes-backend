@@ -23,7 +23,6 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<AccountWithUserWithoutPassword | null> {
-    console.log('Validate user function runs');
     const account: AccountWithUser =
       await this.accountsService.findOneByEmail(email);
     if (account) {
@@ -65,7 +64,6 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }> {
-    console.log('Login function runs');
     return this.generateTokens(account);
   }
 

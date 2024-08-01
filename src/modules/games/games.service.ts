@@ -1,23 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GamesRepository } from './games.repository';
 import { LevelsService } from '../levels/levels.service';
 // import { Cron } from '@nestjs/schedule';
-import { AccountsService } from '../accounts/accounts.service';
 import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
+import { Account } from '@prisma/client';
+import { CreateEmailResponse } from 'src/types/resend-types';
 
 @Injectable()
 export class GamesService {
   constructor(
     private repository: GamesRepository,
     private levelsService: LevelsService,
-    private accountsService: AccountsService,
   ) {}
 
   private readonly logger = new Logger(GamesService.name);
 
   private async initialiseGame(game: GameWithAccountAndUser) {
     this.logger.log(`Created new game for ${game.account.user.email}`);
-    await this.levelsService.initialiseLevel(
+    return this.levelsService.initialiseLevel(
       game.levelId,
       game.account.user.email,
     );
@@ -32,12 +32,15 @@ export class GamesService {
       },
     });
 
-    if (game) this.initialiseGame(game);
+    let emailResult: CreateEmailResponse;
+
+    if (game) emailResult = await this.initialiseGame(game);
+
+    return { game, emailResult };
   }
 
   // @Cron(new Date('2024-07-30T22:50:00'))
-  async createMany() {
-    const accounts = await this.accountsService.getAllAccountIds();
+  async createMany(accounts: Account[]) {
     const games: GameWithAccountAndUser[] = await this.repository.createMany({
       data: accounts.map((account) => ({
         accountId: account.id,
@@ -48,22 +51,30 @@ export class GamesService {
 
   async levelUp(accountId: number, solution?: string) {
     const game = await this.repository.getByAccountWithLevelAndUser(accountId);
+
+    if (!game) throw new NotFoundException('Game not found');
+
     if (
-      this.levelsService.trySolution(game.levelId, solution) ||
-      !game.level.solution
+      !game.level.solution ||
+      this.levelsService.trySolution(game.levelId, solution)
     ) {
       const maxLevel: number = await this.levelsService.getMaxLevel();
       if (game.levelId === maxLevel) {
         throw new Error('Max level reached');
       }
-      const newLevel = await this.repository.increaseLevel(game.levelId);
-      await this.levelsService.initialiseLevel(
+      // TODO: Validate that the user is moving to the correct level
+      // TODO: Fix level increase logic to use sequence instead of id
+      // TODO: Implement acts
+      const newLevel = await this.repository.increaseLevel(game.id);
+
+      const emailResult = await this.levelsService.initialiseLevel(
         newLevel.id,
         game.account.user.email,
       );
-      return newLevel;
+
+      return { newLevel, emailResult };
     } else {
-      return { message: 'Incorrect solution' };
+      return { error: 'Incorrect solution' };
     }
   }
 

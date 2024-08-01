@@ -41,7 +41,13 @@ export class LevelsService {
         text,
         html,
       };
-      await this.resendService.emailSingleUser(email);
+      const emailResult = await this.resendService.emailSingleUser(email);
+
+      if (emailResult.error) {
+        // TODO: handle error
+      }
+
+      return emailResult;
     }
   }
 

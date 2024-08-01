@@ -5,10 +5,7 @@ import { EmailDto, EmailSendDto } from './email.dto';
 import { EmailsRepository } from './emails.repository';
 import {
   CreateBatchResponse,
-  CreateBatchSuccessResponse,
   CreateEmailResponse,
-  CreateEmailResponseSuccess,
-  ErrorResponse,
 } from 'src/types/resend-types';
 
 @Injectable()
@@ -22,9 +19,7 @@ export class ResendService extends Resend {
 
   private readonly logger = new Logger();
 
-  async emailAllUsers(
-    email: EmailDto,
-  ): Promise<CreateBatchSuccessResponse | ErrorResponse> {
+  async emailAllUsers(email: EmailDto): Promise<CreateBatchResponse> {
     const users = await this.usersService.getAll();
     const emails: EmailSendDto[] = [];
     users.forEach((user) => {
@@ -36,20 +31,13 @@ export class ResendService extends Resend {
         html: email.html,
       });
     });
-    const { data, error }: CreateBatchResponse = await this.batch.send(emails);
+    const response: CreateBatchResponse = await this.batch.send(emails);
 
-    if (error) return error;
-
-    return data;
+    return response;
   }
 
-  async emailSingleUser(
-    email: EmailSendDto,
-  ): Promise<ErrorResponse | CreateEmailResponseSuccess> {
-    const { data, error }: CreateEmailResponse = await this.emails.send(email);
-
-    if (error) return error;
-
-    return data;
+  async emailSingleUser(email: EmailSendDto): Promise<CreateEmailResponse> {
+    const response: CreateEmailResponse = await this.emails.send(email);
+    return response;
   }
 }

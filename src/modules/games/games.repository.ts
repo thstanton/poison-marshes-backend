@@ -7,6 +7,7 @@ import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
 export class GamesRepository {
   constructor(private prisma: PrismaService) {}
 
+  // TODO: Make this a more generic update method and handle the logic in the service
   async increaseLevel(id: number) {
     return this.prisma.game.update({
       where: { id },

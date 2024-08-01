@@ -4,10 +4,10 @@ import { GamesRepository } from './games.repository';
 import { PrismaModule } from 'src/database/prisma.module';
 import { LevelsModule } from '../levels/levels.module';
 import { GamesController } from './games.controller';
-import { AccountsModule } from '../accounts/accounts.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, LevelsModule, AccountsModule],
+  imports: [PrismaModule, LevelsModule, AuthModule],
   providers: [GamesService, GamesRepository],
   controllers: [GamesController],
   exports: [GamesService],

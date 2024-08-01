@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Put,
   Req,
@@ -17,8 +18,11 @@ import { AccountWithUserWithoutPassword } from 'src/types/prisma-custom-types';
 export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
+  private logger = new Logger(GamesController.name);
+
   @Post('create')
   async create(@Req() req: GuardedRequest) {
+    this.logger.debug('Creating new game' + req.account);
     const { id }: AccountWithUserWithoutPassword = req.account;
     return this.gamesService.create(id);
   }
