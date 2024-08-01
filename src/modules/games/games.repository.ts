@@ -57,7 +57,16 @@ export class GamesRepository {
   }
 
   async createMany(params: { data: Prisma.GameCreateManyInput[] }) {
-    return this.prisma.game.createMany(params);
+    return this.prisma.game.createManyAndReturn({
+      ...params,
+      include: {
+        account: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
   }
 
   async delete(id: number) {
