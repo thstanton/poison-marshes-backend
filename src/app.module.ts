@@ -11,6 +11,7 @@ import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot({}),
     ApiModule,
     UsersModule,
     ResendModule,
@@ -18,7 +19,6 @@ import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
     LevelsModule,
     GamesModule,
     AuthModule,
-    ScheduleModule.forRoot(),
     QrCodesModule,
   ],
   controllers: [],
