@@ -14,7 +14,7 @@ import { Request } from 'express';
 import { ResendService } from 'src/modules/resend/resend.service';
 import { UsersService } from 'src/modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { EmailDto } from 'src/modules/resend/email.dto';
+import { EmailDto, EmailSendDto } from 'src/modules/resend/email.dto';
 
 @Controller('api')
 export class ApiController {
@@ -91,13 +91,14 @@ export class ApiController {
   @Post('email-all-users')
   @UsePipes(new ValidationPipe())
   async emailAllUsers(@Body() email: EmailDto) {
-    await this.resendService.emailAllUsers(email);
+    return this.resendService.emailAllUsers(email);
   }
 
   @Post('email-single-user')
   @UsePipes(new ValidationPipe())
-  async emailSingleUser(@Body() email: EmailDto) {
-    await this.resendService.emailSingleUser(email);
+  async emailSingleUser(@Body('email') email: EmailSendDto) {
+    const response = await this.resendService.emailSingleUser(email);
+    return response;
   }
 
   @Post('resend-confirmation')

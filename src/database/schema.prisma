@@ -41,7 +41,8 @@ model Game {
 }
 
 model Level {
-  id          Int      @id @unique
+  id          Int      @id @default(autoincrement())
+  sequence    Int      @unique
   act         Int
   name        String
   flavourText String

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AccountsRepository } from './accounts.repository';
 import { BcryptService } from 'src/auth/bcrypt/bcrypt.service';
 import { AccountWithUser } from 'src/types/prisma-custom-types';
+import { AccountCreateDto } from './account-create.dto';
 
 @Injectable()
 export class AccountsService {
@@ -10,11 +11,14 @@ export class AccountsService {
     private bcryptService: BcryptService,
   ) {}
 
-  async create(userId: number, password: string, name: string) {
+  async create(account: AccountCreateDto) {
+    const { userId, password, name } = account;
+
     let hashedPassword: string;
     if (password) {
       hashedPassword = await this.bcryptService.hashPassword(password);
     }
+
     return this.repository.create({
       data: {
         name,

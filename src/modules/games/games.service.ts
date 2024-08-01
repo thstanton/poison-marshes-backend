@@ -15,14 +15,24 @@ export class GamesService {
 
   private readonly logger = new Logger(GamesService.name);
 
+  private async initialiseGame(game: GameWithAccountAndUser) {
+    this.logger.log(`Created new game for ${game.account.user.email}`);
+    await this.levelsService.initialiseLevel(
+      game.levelId,
+      game.account.user.email,
+    );
+  }
+
   async create(accountId: number) {
-    return this.repository.createNew({
+    const game: GameWithAccountAndUser = await this.repository.createNew({
       data: {
         account: {
           connect: { id: accountId },
         },
       },
     });
+
+    if (game) this.initialiseGame(game);
   }
 
   // @Cron(new Date('2024-07-30T22:50:00'))
@@ -33,10 +43,7 @@ export class GamesService {
         accountId: account.id,
       })),
     });
-    games.forEach((game) => {
-      this.logger.log(`Created new game for ${game.account.user.email}`);
-      this.levelsService.initialiseLevel(game.levelId, game.account.user.email);
-    });
+    games.forEach((game: GameWithAccountAndUser) => this.initialiseGame(game));
   }
 
   async levelUp(accountId: number, solution?: string) {

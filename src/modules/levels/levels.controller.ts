@@ -1,8 +1,15 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { LevelsService } from './levels.service';
 import { LevelCreateDto, LevelCreateManyDto } from './level-create.dto';
 
 @Controller('levels')
+@UsePipes(new ValidationPipe({ transform: true }))
 export class LevelsController {
   constructor(private readonly levelsService: LevelsService) {}
 

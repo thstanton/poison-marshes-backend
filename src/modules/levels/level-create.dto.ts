@@ -1,11 +1,23 @@
-import { IsNotEmpty, IsUrl } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 import { EmailDto } from '../resend/email.dto';
+import { Type } from 'class-transformer';
 
 export class LevelCreateDto {
   @IsNotEmpty()
-  id: number;
+  @IsInt()
+  @Type(() => Number)
+  sequence: number;
 
   @IsNotEmpty()
+  @IsInt()
+  @Type(() => Number)
   act: number;
 
   @IsNotEmpty()
@@ -17,19 +29,25 @@ export class LevelCreateDto {
   @IsNotEmpty()
   task: string;
 
+  @IsOptional()
   solution?: string;
 
+  @IsArray()
   hint: string[];
 
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EmailDto)
   email?: EmailDto;
 
   @IsUrl()
+  @IsOptional()
   videoUrl?: string;
 }
 
 export class LevelCreateManyDto {
   @IsNotEmpty()
-  id: number;
+  sequence: number;
 
   @IsNotEmpty()
   act: number;

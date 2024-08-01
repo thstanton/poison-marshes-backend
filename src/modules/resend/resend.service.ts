@@ -1,8 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 import { UsersService } from '../users/users.service';
-import { EmailDto } from './email.dto';
+import { EmailDto, EmailSendDto } from './email.dto';
 import { EmailsRepository } from './emails.repository';
+import {
+  CreateBatchResponse,
+  CreateBatchSuccessResponse,
+  CreateEmailResponse,
+  CreateEmailResponseSuccess,
+  ErrorResponse,
+} from 'src/types/resend-types';
 
 @Injectable()
 export class ResendService extends Resend {
@@ -13,10 +20,15 @@ export class ResendService extends Resend {
     super(process.env.RESEND_API_KEY);
   }
 
-  async emailAllUsers(email: EmailDto) {
+  private readonly logger = new Logger();
+
+  async emailAllUsers(
+    email: EmailDto,
+  ): Promise<CreateBatchSuccessResponse | ErrorResponse> {
     const users = await this.usersService.getAll();
+    const emails: EmailSendDto[] = [];
     users.forEach((user) => {
-      this.emails.send({
+      emails.push({
         from: email.from,
         to: user.email,
         subject: email.subject,
@@ -24,17 +36,20 @@ export class ResendService extends Resend {
         html: email.html,
       });
     });
+    const { data, error }: CreateBatchResponse = await this.batch.send(emails);
+
+    if (error) return error;
+
+    return data;
   }
 
-  async emailSingleUser(email: EmailDto) {
-    if (email.to) {
-      this.emails.send({
-        from: email.from,
-        to: email.to,
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
-      });
-    }
+  async emailSingleUser(
+    email: EmailSendDto,
+  ): Promise<ErrorResponse | CreateEmailResponseSuccess> {
+    const { data, error }: CreateEmailResponse = await this.emails.send(email);
+
+    if (error) return error;
+
+    return data;
   }
 }

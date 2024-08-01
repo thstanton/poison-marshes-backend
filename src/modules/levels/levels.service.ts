@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LevelsRepository } from './levels.repository';
 import { ResendService } from '../resend/resend.service';
-import { EmailDto } from '../resend/email.dto';
+import { EmailSendDto } from '../resend/email.dto';
 import { LevelCreateDto, LevelCreateManyDto } from './level-create.dto';
 import { Prisma } from '@prisma/client';
 
@@ -34,7 +34,7 @@ export class LevelsService {
     const level = await this.repository.levelHasEmail(levelId);
     if (level.email) {
       const { from, subject, text, html } = level.email;
-      const email: EmailDto = {
+      const email: EmailSendDto = {
         to: userEmail,
         from,
         subject,
@@ -49,7 +49,7 @@ export class LevelsService {
     levelCreateDto: LevelCreateDto,
   ): Prisma.LevelCreateInput {
     const {
-      id,
+      sequence,
       act,
       name,
       flavourText,
@@ -61,7 +61,7 @@ export class LevelsService {
     } = levelCreateDto;
 
     const formattedData: Prisma.LevelCreateInput = {
-      id,
+      sequence,
       act,
       name,
       flavourText,
@@ -88,11 +88,11 @@ export class LevelsService {
   private formatManyLevelsData(
     levelCreateManyDto: LevelCreateManyDto,
   ): Prisma.LevelCreateManyInput {
-    const { id, act, name, flavourText, task, solution, hint, videoUrl } =
+    const { sequence, act, name, flavourText, task, solution, hint, videoUrl } =
       levelCreateManyDto;
 
     const formattedData: Prisma.LevelCreateManyInput = {
-      id,
+      sequence,
       act,
       name,
       flavourText,
