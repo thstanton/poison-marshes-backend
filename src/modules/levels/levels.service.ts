@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { LevelsRepository } from './levels.repository';
 import { ResendService } from '../resend/resend.service';
 import { EmailDto } from '../resend/email.dto';
+import { LevelCreateDto, LevelCreateManyDto } from './level-create.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class LevelsService {
@@ -41,5 +43,80 @@ export class LevelsService {
       };
       await this.resendService.emailSingleUser(email);
     }
+  }
+
+  private formatLevelData(
+    levelCreateDto: LevelCreateDto,
+  ): Prisma.LevelCreateInput {
+    const {
+      id,
+      act,
+      name,
+      flavourText,
+      task,
+      solution,
+      hint,
+      email,
+      videoUrl,
+    } = levelCreateDto;
+
+    const formattedData: Prisma.LevelCreateInput = {
+      id,
+      act,
+      name,
+      flavourText,
+      task,
+      hint,
+    };
+
+    if (solution) formattedData.solution = solution;
+    if (videoUrl) formattedData.videoUrl = videoUrl;
+    if (email) {
+      formattedData.email = {
+        create: {
+          from: email.from,
+          subject: email.subject,
+          text: email.text,
+          html: email.html,
+        },
+      };
+    }
+
+    return formattedData;
+  }
+
+  private formatManyLevelsData(
+    levelCreateManyDto: LevelCreateManyDto,
+  ): Prisma.LevelCreateManyInput {
+    const { id, act, name, flavourText, task, solution, hint, videoUrl } =
+      levelCreateManyDto;
+
+    const formattedData: Prisma.LevelCreateManyInput = {
+      id,
+      act,
+      name,
+      flavourText,
+      task,
+      hint,
+    };
+
+    if (solution) formattedData.solution = solution;
+    if (videoUrl) formattedData.videoUrl = videoUrl;
+
+    return formattedData;
+  }
+
+  async createLevel(levelCreateDto: LevelCreateDto) {
+    const data = this.formatLevelData(levelCreateDto);
+    return this.repository.create({ data });
+  }
+
+  async createManyLevels(levels: LevelCreateManyDto[]) {
+    const data: Prisma.LevelCreateManyInput[] = [];
+    levels.forEach((level) => {
+      const formattedLevel = this.formatManyLevelsData(level);
+      data.push(formattedLevel);
+    });
+    return this.repository.createMany({ data });
   }
 }

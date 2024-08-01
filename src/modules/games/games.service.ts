@@ -28,12 +28,11 @@ export class GamesService {
   // @Cron(new Date('2024-07-30T22:50:00'))
   async createMany() {
     const accounts = await this.accountsService.getAllAccountIds();
-    await this.repository.createMany({
+    const games: GameWithAccountAndUser[] = await this.repository.createMany({
       data: accounts.map((account) => ({
         accountId: account.id,
       })),
     });
-    const games: GameWithAccountAndUser[] = await this.repository.getAll();
     games.forEach((game) => {
       this.logger.log(`Created new game for ${game.account.user.email}`);
       this.levelsService.initialiseLevel(game.levelId, game.account.user.email);

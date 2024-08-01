@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
@@ -32,5 +33,13 @@ export class LevelsRepository {
         id: true,
       },
     });
+  }
+
+  async create(params: { data: Prisma.LevelCreateInput }) {
+    return this.prisma.level.create(params);
+  }
+
+  async createMany(params: { data: Prisma.LevelCreateManyInput[] }) {
+    return this.prisma.level.createMany(params);
   }
 }
