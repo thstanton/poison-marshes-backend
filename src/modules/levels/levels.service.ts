@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LevelsRepository } from './levels.repository';
 import { ResendService } from '../resend/resend.service';
 import { EmailCreateDto, EmailSendDto } from '../resend/email.dto';
-import { LevelCreateDto, LevelCreateManyDto } from './level-create.dto';
+import { LevelCreateDto } from './level-create.dto';
 import { Level, Prisma } from '@prisma/client';
 import { LevelUpdateDto } from './level-update.dto';
 import { EmailUpdateDto } from '../resend/email-update.dto';
@@ -19,6 +19,16 @@ export class LevelsService {
 
   async getById(id: number): Promise<Level> {
     return this.repository.getById({ where: { id } });
+  }
+
+  async getByActAndSequence(act: number, sequence: number): Promise<Level> {
+    return this.repository.getOne({
+      where: { sequence, act: { sequence: act } },
+    });
+  }
+
+  async getAll(): Promise<Level[]> {
+    return this.repository.getAll();
   }
 
   async trySolution(levelId: number, solution: string): Promise<boolean> {
@@ -98,11 +108,15 @@ export class LevelsService {
 
     const formattedData: Prisma.LevelCreateInput = {
       sequence,
-      act,
       name,
       flavourText,
       task,
       hint,
+      act: {
+        connect: {
+          sequence: act,
+        },
+      },
     };
 
     if (solution) formattedData.solution = solution;
@@ -121,39 +135,9 @@ export class LevelsService {
     return formattedData;
   }
 
-  private formatManyLevelsData(
-    levelCreateManyDto: LevelCreateManyDto,
-  ): Prisma.LevelCreateManyInput {
-    const { sequence, act, name, flavourText, task, solution, hint, videoUrl } =
-      levelCreateManyDto;
-
-    const formattedData: Prisma.LevelCreateManyInput = {
-      sequence,
-      act,
-      name,
-      flavourText,
-      task,
-      hint,
-    };
-
-    if (solution) formattedData.solution = solution;
-    if (videoUrl) formattedData.videoUrl = videoUrl;
-
-    return formattedData;
-  }
-
   async createLevel(levelCreateDto: LevelCreateDto): Promise<Level> {
     const data = this.formatLevelData(levelCreateDto);
     return this.repository.create({ data });
-  }
-
-  async createManyLevels(levels: LevelCreateManyDto[]): Promise<Level[]> {
-    const data: Prisma.LevelCreateManyInput[] = [];
-    levels.forEach((level) => {
-      const formattedLevel = this.formatManyLevelsData(level);
-      data.push(formattedLevel);
-    });
-    return this.repository.createMany({ data });
   }
 
   async createLevelEmail(

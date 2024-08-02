@@ -8,6 +8,7 @@ import { GamesModule } from './modules/games/games.module';
 import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
+import { ActsModule } from './modules/acts/acts.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
     GamesModule,
     AuthModule,
     QrCodesModule,
+    ActsModule,
   ],
   controllers: [],
   providers: [],

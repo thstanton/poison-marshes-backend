@@ -8,11 +8,6 @@ export class LevelUpdateDto {
   sequence?: number;
 
   @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  act?: number;
-
-  @IsOptional()
   name?: string;
 
   @IsOptional()

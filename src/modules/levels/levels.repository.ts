@@ -34,14 +34,12 @@ export class LevelsRepository {
     return this.prisma.level.create(params);
   }
 
-  async update<
-    T extends {
-      data: Prisma.LevelUpdateInput;
-      where: Prisma.LevelWhereUniqueInput;
-      select?: Prisma.LevelSelect | null;
-      include?: Prisma.LevelInclude | null;
-    },
-  >(params: T): Promise<any> {
+  async update(params: {
+    data: Prisma.LevelUpdateInput;
+    where: Prisma.LevelWhereUniqueInput;
+    select?: Prisma.LevelSelect | null;
+    include?: Prisma.LevelInclude | null;
+  }): Promise<any> {
     return this.prisma.level.update(params);
   }
 

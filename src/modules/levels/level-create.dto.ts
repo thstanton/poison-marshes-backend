@@ -1,8 +1,11 @@
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
@@ -47,10 +50,9 @@ export class LevelCreateDto {
 
 export class LevelCreateManyDto {
   @IsNotEmpty()
+  @IsInt()
+  @Type(() => Number)
   sequence: number;
-
-  @IsNotEmpty()
-  act: number;
 
   @IsNotEmpty()
   name: string;
@@ -61,10 +63,16 @@ export class LevelCreateManyDto {
   @IsNotEmpty()
   task: string;
 
+  @IsOptional()
   solution?: string;
 
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(3)
+  @IsArray()
   hint: string[];
 
   @IsUrl()
+  @IsOptional()
   videoUrl?: string;
 }
