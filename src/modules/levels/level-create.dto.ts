@@ -6,7 +6,7 @@ import {
   IsUrl,
   ValidateNested,
 } from 'class-validator';
-import { EmailDto } from '../resend/email.dto';
+import { EmailCreateDto } from '../resend/email.dto';
 import { Type } from 'class-transformer';
 
 export class LevelCreateDto {
@@ -37,8 +37,8 @@ export class LevelCreateDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => EmailDto)
-  email?: EmailDto;
+  @Type(() => EmailCreateDto)
+  email?: EmailCreateDto;
 
   @IsUrl()
   @IsOptional()

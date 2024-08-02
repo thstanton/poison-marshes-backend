@@ -1,4 +1,6 @@
+import { Level } from '@prisma/client';
 import { AccountWithUserWithoutPassword } from './prisma-custom-types';
+import { CreateEmailResponse } from './resend-types';
 
 export interface AccessTokens {
   accessToken: string;
@@ -13,3 +15,8 @@ export interface JwtPayload {
 export type GuardedRequest = Request & {
   account?: AccountWithUserWithoutPassword;
 };
+
+export interface InitialiseLevelReturn {
+  level: Level;
+  email: CreateEmailResponse | 'No email';
+}

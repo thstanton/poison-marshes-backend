@@ -14,7 +14,7 @@ import { Request } from 'express';
 import { ResendService } from 'src/modules/resend/resend.service';
 import { UsersService } from 'src/modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { EmailDto, EmailSendDto } from 'src/modules/resend/email.dto';
+import { EmailCreateDto, EmailSendDto } from 'src/modules/resend/email.dto';
 
 @Controller('api')
 export class ApiController {
@@ -90,7 +90,7 @@ export class ApiController {
 
   @Post('email-all-users')
   @UsePipes(new ValidationPipe())
-  async emailAllUsers(@Body() email: EmailDto) {
+  async emailAllUsers(@Body() email: EmailCreateDto) {
     return this.resendService.emailAllUsers(email);
   }
 

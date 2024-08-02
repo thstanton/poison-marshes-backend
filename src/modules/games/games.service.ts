@@ -4,7 +4,7 @@ import { LevelsService } from '../levels/levels.service';
 // import { Cron } from '@nestjs/schedule';
 import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
 import { Account } from '@prisma/client';
-import { CreateEmailResponse } from 'src/types/resend-types';
+import { InitialiseLevelReturn } from 'src/types/custom-types';
 
 @Injectable()
 export class GamesService {
@@ -15,8 +15,9 @@ export class GamesService {
 
   private readonly logger = new Logger(GamesService.name);
 
-  private async initialiseGame(game: GameWithAccountAndUser) {
-    this.logger.log(`Created new game for ${game.account.user.email}`);
+  private async initialiseGame(
+    game: GameWithAccountAndUser,
+  ): Promise<InitialiseLevelReturn> {
     return this.levelsService.initialiseLevel(
       game.levelId,
       game.account.user.email,
@@ -32,11 +33,12 @@ export class GamesService {
       },
     });
 
-    let emailResult: CreateEmailResponse;
+    if (!game) throw new NotFoundException('Game not found');
+    this.logger.log(`Created new game for ${game.account.user.email}`);
 
-    if (game) emailResult = await this.initialiseGame(game);
+    const initialiseResult = await this.initialiseGame(game);
 
-    return { game, emailResult };
+    return { game, initialiseResult };
   }
 
   // @Cron(new Date('2024-07-30T22:50:00'))
