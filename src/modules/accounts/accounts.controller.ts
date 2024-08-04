@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,8 +23,23 @@ export class AccountsController {
     return this.accountsService.create(account);
   }
 
+  @Get()
+  async getAllAccounts() {
+    return this.accountsService.getAll();
+  }
+
   @Get(':id')
   async getAccount(@Param('id', ParseIntPipe) id: number) {
     return this.accountsService.findOneByAccountId(id);
+  }
+
+  @Delete(':id')
+  async deleteAccount(@Param('id', ParseIntPipe) id: number) {
+    return this.accountsService.deleteAccount(id);
+  }
+
+  @Put('/admin/:id')
+  async makeAdmin(@Param('id', ParseIntPipe) id: number) {
+    return this.accountsService.makeAdmin(id);
   }
 }

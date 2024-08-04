@@ -41,14 +41,15 @@ export class AuthService {
   }
 
   private async generateTokens(
-    account: AccountWithUserWithoutPassword,
+    accountId: number,
+    email: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sub = account.id.toString();
-    const payload: JwtPayload = { email: account.user.email, sub };
+    const sub = accountId.toString();
+    const payload: JwtPayload = { email: email, sub };
     const accessToken = this.jwtService.sign(payload);
 
     const refreshTokenId = uuidv4();
-    await this.accountsService.storeRefreshToken(account.id, refreshTokenId);
+    await this.accountsService.storeRefreshToken(accountId, refreshTokenId);
 
     const refreshToken = this.jwtService.sign(
       { refreshTokenId },
@@ -63,8 +64,10 @@ export class AuthService {
   async login(account: AccountWithUserWithoutPassword): Promise<{
     accessToken: string;
     refreshToken: string;
+    account: AccountWithUserWithoutPassword;
   }> {
-    return this.generateTokens(account);
+    const tokens = await this.generateTokens(account.id, account.user.email);
+    return { ...tokens, account };
   }
 
   async refreshTokens(refreshToken: string): Promise<{
@@ -80,7 +83,7 @@ export class AuthService {
         throw new Error('Invalid refresh token');
       }
 
-      return this.generateTokens(account);
+      return this.generateTokens(account.id, account.user.email);
     } catch (error) {
       throw new Error('Invalid refresh token');
     }

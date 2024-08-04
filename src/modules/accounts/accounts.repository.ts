@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { AccountWithUser } from 'src/types/prisma-custom-types';
 
 @Injectable()
 export class AccountsRepository {
@@ -25,11 +24,17 @@ export class AccountsRepository {
   async getOne(params: {
     where: Prisma.AccountWhereInput;
     select?: Prisma.AccountSelect;
-  }): Promise<AccountWithUser> {
-    return this.prisma.account.findFirst({
-      ...params,
-      include: { user: true },
-    });
+    include?: Prisma.AccountInclude;
+  }): Promise<any> {
+    return this.prisma.account.findFirst(params);
+  }
+
+  async getById(params: {
+    where: Prisma.AccountWhereUniqueInput;
+    select?: Prisma.AccountSelect;
+    include?: Prisma.AccountInclude;
+  }): Promise<any> {
+    return this.prisma.account.findUnique(params);
   }
 
   async getAll(params?: { select?: Prisma.AccountSelect }) {
