@@ -33,7 +33,7 @@ export class AuthService {
 
       if (isMatch) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...result } = account;
+        const { password, refreshToken, ...result } = account;
         return result;
       }
     }
@@ -73,6 +73,7 @@ export class AuthService {
   async refreshTokens(refreshToken: string): Promise<{
     accessToken: string;
     refreshToken: string;
+    account: AccountWithUserWithoutPassword;
   } | null> {
     try {
       const { refreshTokenId } = this.jwtService.verify(refreshToken);
@@ -83,7 +84,8 @@ export class AuthService {
         throw new Error('Invalid refresh token');
       }
 
-      return this.generateTokens(account.id, account.user.email);
+      const tokens = await this.generateTokens(account.id, account.user.email);
+      return { ...tokens, account };
     } catch (error) {
       throw new Error('Invalid refresh token');
     }

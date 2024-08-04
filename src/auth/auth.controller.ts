@@ -49,8 +49,30 @@ export class AuthController {
     @Res() res: Response,
   ) {
     try {
-      const tokens = await this.authService.refreshTokens(refreshToken);
-      res.json(tokens);
+      const {
+        accessToken,
+        refreshToken: newRefreshToken,
+        account,
+      } = await this.authService.refreshTokens(refreshToken);
+
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        signed: true,
+        domain: undefined,
+        secure: false,
+      });
+
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        signed: true,
+        domain: undefined,
+        secure: false,
+      });
+
+      return res.status(HttpStatus.OK).json({
+        account,
+      });
     } catch (error) {
       res.status(401).json({
         message: 'Invalid refresh token',
