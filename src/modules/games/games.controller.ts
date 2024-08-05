@@ -41,4 +41,10 @@ export class GamesController {
     const { id }: AccountWithUserWithoutPassword = req.account;
     return this.gamesService.levelUp(id, solution);
   }
+
+  @Get('current')
+  async current(@Req() req: GuardedRequest) {
+    const { id }: AccountWithUserWithoutPassword = req.account;
+    return this.gamesService.getCurrent(id);
+  }
 }

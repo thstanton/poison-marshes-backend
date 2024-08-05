@@ -23,9 +23,9 @@ export class ActsController {
     return this.actsService.getAll();
   }
 
-  @Get(':id')
-  getById(@Param('id') id: number) {
-    return this.actsService.getByIdWithLevelsAndGames(id);
+  @Get(':sequence')
+  getById(@Param('sequence') sequence: number) {
+    return this.actsService.getBySequenceId(sequence);
   }
 
   @Post()

@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsInt, IsNotEmpty } from 'class-validator';
+import {
+  IsDate,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class ActCreateDto {
   @IsNotEmpty()
@@ -14,4 +20,8 @@ export class ActCreateDto {
   @IsDate()
   @Type(() => Date)
   startDate: Date;
+
+  @IsOptional()
+  @IsString()
+  preStartMessage?: string;
 }

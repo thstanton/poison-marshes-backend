@@ -15,6 +15,10 @@ export class ActsService {
     return this.repository.getById({ where: { id } });
   }
 
+  async getBySequenceId(sequence: number) {
+    return this.repository.getById({ where: { sequence } });
+  }
+
   async getByIdWithLevelsAndGames(id: number) {
     return this.repository.getById({
       where: { id },

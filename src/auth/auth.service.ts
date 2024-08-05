@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AccountsService } from 'src/modules/accounts/accounts.service';
 import { BcryptService } from './bcrypt/bcrypt.service';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +16,8 @@ export class AuthService {
     private bcryptService: BcryptService,
     private jwtService: JwtService,
   ) {}
+
+  private logger = new Logger(AuthService.name);
 
   // Validates user email and password for Passport Local Strategy,
   // Called by validate method of LocalAuthGuard
@@ -75,9 +77,10 @@ export class AuthService {
     refreshToken: string;
     account: AccountWithUserWithoutPassword;
   } | null> {
+    this.logger.debug('refreshTokens received: ' + refreshToken);
     try {
       const { refreshTokenId } = this.jwtService.verify(refreshToken);
-      const account =
+      const account: AccountWithUser =
         await this.accountsService.findAccountIdByRefreshToken(refreshTokenId);
 
       if (!account) {
@@ -85,9 +88,10 @@ export class AuthService {
       }
 
       const tokens = await this.generateTokens(account.id, account.user.email);
+
       return { ...tokens, account };
     } catch (error) {
-      throw new Error('Invalid refresh token');
+      this.logger.error(error);
     }
   }
 

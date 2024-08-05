@@ -19,16 +19,12 @@ export class GamesRepository {
     return this.prisma.game.findUnique({ ...params, include: { level: true } });
   }
 
-  async getByAccountWithLevelAndUser(accountId: number) {
-    return this.prisma.game.findUnique({
-      where: { accountId },
-      include: {
-        level: true,
-        account: {
-          include: { user: true },
-        },
-      },
-    });
+  async getByAccount(params: {
+    where: Prisma.GameWhereUniqueInput;
+    include?: Prisma.GameInclude;
+    select?: Prisma.GameSelect;
+  }): Promise<any> {
+    return this.prisma.game.findUnique(params);
   }
 
   async getAll(params?: {

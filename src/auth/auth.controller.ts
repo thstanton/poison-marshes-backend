@@ -1,7 +1,8 @@
 import {
-  Body,
   Controller,
+  Get,
   HttpStatus,
+  Logger,
   Post,
   Req,
   Res,
@@ -11,10 +12,14 @@ import { LocalAuthGuard } from './local/local-auth.guard';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { GuardedRequest } from 'src/types/custom-types';
+import { Cookies } from 'src/decorators/cookies.decorator';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  private readonly logger = new Logger(AuthController.name);
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -45,7 +50,7 @@ export class AuthController {
 
   @Post('refresh')
   async refresh(
-    @Body('refreshToken') refreshToken: string,
+    @Cookies('refreshToken') refreshToken: string,
     @Res() res: Response,
   ) {
     try {
@@ -78,5 +83,11 @@ export class AuthController {
         message: 'Invalid refresh token',
       });
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('is-logged-in')
+  async isLoggedIn(@Req() req: GuardedRequest) {
+    return req.account;
   }
 }

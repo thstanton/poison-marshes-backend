@@ -24,3 +24,13 @@ export type LevelWithEmail = Prisma.LevelGetPayload<{
     email: true;
   };
 }>;
+
+export type GameWithLevelAndAct = Prisma.GameGetPayload<{
+  include: {
+    level: {
+      include: {
+        act: true;
+      };
+    };
+  };
+}>;

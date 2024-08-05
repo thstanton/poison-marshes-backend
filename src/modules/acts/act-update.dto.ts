@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsInt,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { LevelCreateManyDto } from '../levels/level-create.dto';
@@ -21,6 +22,10 @@ export class ActUpdateDto {
   @IsDateString()
   @Type(() => Date)
   startDate: Date;
+
+  @IsOptional()
+  @IsString()
+  preStartMessage?: string;
 
   @IsOptional()
   @IsArray()

@@ -67,7 +67,10 @@ export class AccountsService {
   }
 
   async findOneByAccountId(accountId: number) {
-    return this.repository.getOne({ where: { id: accountId } });
+    return this.repository.getOne({
+      where: { id: accountId },
+      include: { user: true, game: true },
+    });
   }
 
   async storeRefreshToken(accountId: number, refreshToken: string) {
@@ -84,6 +87,7 @@ export class AccountsService {
       where: {
         refreshToken,
       },
+      include: { user: true },
     });
   }
 

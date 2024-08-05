@@ -60,12 +60,13 @@ model Level {
 }
 
 model Act {
-  id         Int      @id @default(autoincrement())
-  sequence   Int      @unique
-  name       String
-  startDate  DateTime
-  inProgress Boolean  @default(false)
-  levels     Level[]
+  id              Int      @id @default(autoincrement())
+  sequence        Int      @unique
+  name            String
+  startDate       DateTime
+  inProgress      Boolean  @default(false)
+  preStartMessage String?
+  levels          Level[]
 }
 
 model Email {

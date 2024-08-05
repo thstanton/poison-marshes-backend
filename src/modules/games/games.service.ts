@@ -1,7 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GamesRepository } from './games.repository';
 import { LevelsService } from '../levels/levels.service';
-import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
+import {
+  GameWithAccountAndUser,
+  GameWithLevelAndAct,
+} from 'src/types/prisma-custom-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
 
 @Injectable()
@@ -47,8 +50,25 @@ export class GamesService {
     return { game, initialiseResult };
   }
 
+  async getCurrent(accountId: number): Promise<GameWithLevelAndAct> {
+    return this.repository.getByAccount({
+      where: { accountId },
+      include: { level: { include: { act: true } } },
+    });
+  }
+
   async levelUp(accountId: number, solution?: string) {
-    const game = await this.repository.getByAccountWithLevelAndUser(accountId);
+    const game = await this.repository.getByAccount({
+      where: { accountId },
+      include: {
+        account: {
+          include: {
+            user: true,
+          },
+        },
+        level: true,
+      },
+    });
 
     if (!game) throw new NotFoundException('Game not found');
 
