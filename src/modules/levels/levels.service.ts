@@ -96,12 +96,12 @@ export class LevelsService {
   ): Prisma.LevelCreateInput {
     const {
       sequence,
-      act,
+      actSequence,
       name,
       flavourText,
       task,
       solution,
-      hint,
+      hints,
       email,
       videoUrl,
     } = levelCreateDto;
@@ -111,10 +111,10 @@ export class LevelsService {
       name,
       flavourText,
       task,
-      hint,
+      hints,
       act: {
         connect: {
-          sequence: act,
+          sequence: actSequence,
         },
       },
     };

@@ -1,9 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GamesRepository } from './games.repository';
 import { LevelsService } from '../levels/levels.service';
-// import { Cron } from '@nestjs/schedule';
 import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
-import { Account } from '@prisma/client';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
 
 @Injectable()
@@ -30,6 +28,14 @@ export class GamesService {
         account: {
           connect: { id: accountId },
         },
+        level: {
+          connect: {
+            sequence_actSequence: {
+              sequence: 0,
+              actSequence: 0,
+            },
+          },
+        },
       },
     });
 
@@ -39,16 +45,6 @@ export class GamesService {
     const initialiseResult = await this.initialiseGame(game);
 
     return { game, initialiseResult };
-  }
-
-  // @Cron(new Date('2024-07-30T22:50:00'))
-  async createMany(accounts: Account[]) {
-    const games: GameWithAccountAndUser[] = await this.repository.createMany({
-      data: accounts.map((account) => ({
-        accountId: account.id,
-      })),
-    });
-    games.forEach((game: GameWithAccountAndUser) => this.initialiseGame(game));
   }
 
   async levelUp(accountId: number, solution?: string) {

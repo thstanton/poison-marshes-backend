@@ -47,24 +47,25 @@ model Level {
   flavourText String
   task        String
   solution    String?
-  hint        String[]
+  hints       String[]
   email       Email?
   videoUrl    String?
   games       Game[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  act         Act      @relation(fields: [actId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  actId       Int
+  act         Act      @relation(fields: [actSequence], references: [sequence], onDelete: Cascade, onUpdate: Cascade)
+  actSequence Int
 
-  @@unique([sequence, actId])
+  @@unique([sequence, actSequence])
 }
 
 model Act {
-  id        Int      @id @default(autoincrement())
-  sequence  Int      @unique
-  name      String
-  startDate DateTime
-  levels    Level[]
+  id         Int      @id @default(autoincrement())
+  sequence   Int      @unique
+  name       String
+  startDate  DateTime
+  inProgress Boolean  @default(false)
+  levels     Level[]
 }
 
 model Email {

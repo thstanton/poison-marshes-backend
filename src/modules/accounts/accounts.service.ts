@@ -35,6 +35,18 @@ export class AccountsService {
             create: { email },
           },
         },
+        game: {
+          create: {
+            level: {
+              connect: {
+                sequence_actSequence: {
+                  sequence: 0,
+                  actSequence: 0,
+                },
+              },
+            },
+          },
+        },
       },
     });
 

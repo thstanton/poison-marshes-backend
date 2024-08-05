@@ -21,7 +21,7 @@ export class LevelCreateDto {
   @IsNotEmpty()
   @IsInt()
   @Type(() => Number)
-  act: number;
+  actSequence: number;
 
   @IsNotEmpty()
   name: string;
@@ -35,8 +35,11 @@ export class LevelCreateDto {
   @IsOptional()
   solution?: string;
 
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(3)
   @IsArray()
-  hint: string[];
+  hints: string[];
 
   @IsOptional()
   @ValidateNested()
@@ -70,7 +73,7 @@ export class LevelCreateManyDto {
   @ArrayMinSize(1)
   @ArrayMaxSize(3)
   @IsArray()
-  hint: string[];
+  hints: string[];
 
   @IsUrl()
   @IsOptional()
