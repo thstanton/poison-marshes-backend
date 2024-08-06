@@ -12,15 +12,18 @@ import { GamesService } from './games.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { GuardedRequest } from 'src/types/custom-types';
 import { AccountWithUserWithoutPassword } from 'src/types/prisma-custom-types';
+import { RolesGuard } from 'src/auth/roles-guard/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('games')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   private logger = new Logger(GamesController.name);
 
   @Post('create')
+  @Roles('admin')
   async create(@Req() req: GuardedRequest) {
     this.logger.debug('Creating new game' + req.account);
     const { id }: AccountWithUserWithoutPassword = req.account;

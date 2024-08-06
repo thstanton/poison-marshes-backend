@@ -6,8 +6,13 @@ import { PrismaService } from 'src/database/prisma.service';
 export class LevelsRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getAll(): Promise<Level[]> {
-    return this.prisma.level.findMany();
+  async getAll(params?: {
+    where?: Prisma.LevelWhereInput;
+    select?: Prisma.LevelSelect;
+    include?: Prisma.LevelInclude;
+    orderBy?: Prisma.LevelOrderByWithRelationInput;
+  }): Promise<Level[]> {
+    return this.prisma.level.findMany(params);
   }
 
   async getById(params: {

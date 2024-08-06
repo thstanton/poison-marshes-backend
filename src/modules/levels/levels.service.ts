@@ -31,6 +31,25 @@ export class LevelsService {
     return this.repository.getAll();
   }
 
+  async getAllToCurrent(levelId: number): Promise<Level[]> {
+    const { sequence, actSequence }: Level = await this.getById(levelId);
+
+    return this.repository.getAll({
+      where: {
+        sequence: {
+          lte: sequence,
+        },
+        actSequence: {
+          lte: actSequence,
+        },
+      },
+      orderBy: {
+        actSequence: 'asc',
+        sequence: 'asc',
+      },
+    });
+  }
+
   async trySolution(levelId: number, solution: string): Promise<boolean> {
     const level = await this.repository.getById({ where: { id: levelId } });
 

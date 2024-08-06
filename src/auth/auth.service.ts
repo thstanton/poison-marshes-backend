@@ -5,9 +5,12 @@ import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import {
   AccountWithUser,
+  AccountWithUserAndGame,
+  AccountWithUserAndGameWithoutPassword,
   AccountWithUserWithoutPassword,
 } from '../types/prisma-custom-types';
 import { JwtPayload } from 'src/types/custom-types';
+import { Account } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -24,8 +27,8 @@ export class AuthService {
   async validateUserAccount(
     email: string,
     password: string,
-  ): Promise<AccountWithUserWithoutPassword | null> {
-    const account: AccountWithUser =
+  ): Promise<AccountWithUserAndGameWithoutPassword | null> {
+    const account: AccountWithUserAndGame =
       await this.accountsService.findOneByEmail(email);
     if (account) {
       const isMatch = await this.bcryptService.comparePassword(
@@ -72,16 +75,16 @@ export class AuthService {
     return { ...tokens, account };
   }
 
-  async refreshTokens(refreshToken: string): Promise<{
+  async refreshTokens(_refreshToken: string): Promise<{
     accessToken: string;
     refreshToken: string;
     account: AccountWithUserWithoutPassword;
   } | null> {
-    this.logger.debug('refreshTokens received: ' + refreshToken);
+    this.logger.debug('refreshTokens received: ' + _refreshToken);
     try {
-      const { refreshTokenId } = this.jwtService.verify(refreshToken);
+      const { _refreshTokenId } = this.jwtService.verify(_refreshToken);
       const account: AccountWithUser =
-        await this.accountsService.findAccountIdByRefreshToken(refreshTokenId);
+        await this.accountsService.findAccountIdByRefreshToken(_refreshTokenId);
 
       if (!account) {
         throw new Error('Invalid refresh token');
@@ -89,13 +92,22 @@ export class AuthService {
 
       const tokens = await this.generateTokens(account.id, account.user.email);
 
-      return { ...tokens, account };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, refreshToken, ...result } = account;
+
+      return { ...tokens, account: { ...result } };
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  async validateAccountById(accountId: number) {
+  async validateAccountById(
+    accountId: number,
+  ): Promise<AccountWithUserAndGame> {
     return this.accountsService.findOneByAccountId(accountId);
+  }
+
+  async removeRefreshToken(accountId: number): Promise<Account> {
+    return this.accountsService.removeRefreshToken(accountId);
   }
 }

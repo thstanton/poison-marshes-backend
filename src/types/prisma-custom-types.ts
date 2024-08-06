@@ -4,6 +4,15 @@ export type AccountWithUser = Prisma.AccountGetPayload<{
   include: { user: true };
 }>;
 
+export type AccountWithUserAndGame = Prisma.AccountGetPayload<{
+  include: { user: true; game: true };
+}>;
+
+export type AccountWithUserAndGameWithoutPassword = Omit<
+  AccountWithUserAndGame,
+  'password' | 'refreshToken'
+>;
+
 export type AccountWithUserWithoutPassword = Omit<
   Omit<AccountWithUser, 'password'>,
   'refreshToken'

@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { Roles } from '../../decorators/roles.decorator';
+import { AccountWithUserAndGameWithoutPassword } from 'src/types/prisma-custom-types';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -15,7 +16,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest();
-    const account = request.account;
+    const account: AccountWithUserAndGameWithoutPassword = request.account;
     return account.isAdmin === true;
   }
 }

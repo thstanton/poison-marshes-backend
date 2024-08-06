@@ -14,6 +14,7 @@ import { Response } from 'express';
 import { GuardedRequest } from 'src/types/custom-types';
 import { Cookies } from 'src/decorators/cookies.decorator';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { AccountWithUserAndGameWithoutPassword } from 'src/types/prisma-custom-types';
 
 @Controller('auth')
 export class AuthController {
@@ -87,7 +88,24 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('is-logged-in')
-  async isLoggedIn(@Req() req: GuardedRequest) {
+  async isLoggedIn(
+    @Req() req: GuardedRequest,
+  ): Promise<AccountWithUserAndGameWithoutPassword> {
     return req.account;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req: GuardedRequest, @Res() res: Response) {
+    const { id } = req.account;
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    const isLoggedOut = await this.authService.removeRefreshToken(id);
+    if (!isLoggedOut) {
+      throw new Error('Failed to remove refresh token');
+    }
+    return res.status(HttpStatus.OK).json({
+      message: 'Logged out',
+    });
   }
 }

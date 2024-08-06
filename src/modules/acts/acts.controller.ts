@@ -6,14 +6,20 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ActsService } from './acts.service';
 import { ActCreateDto } from './act-create.dto';
 import { ActUpdateDto } from './act-update.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles-guard/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('acts')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class ActsController {
   constructor(private readonly actsService: ActsService) {}

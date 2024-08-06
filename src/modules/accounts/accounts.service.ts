@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AccountsRepository } from './accounts.repository';
 import { BcryptService } from 'src/auth/bcrypt/bcrypt.service';
-import { AccountWithUser } from 'src/types/prisma-custom-types';
+import {
+  AccountWithUser,
+  AccountWithUserAndGame,
+} from 'src/types/prisma-custom-types';
 import { AccountCreateDto } from './account-create.dto';
 import { Account } from '@prisma/client';
 import generator from 'generate-password-ts';
@@ -59,24 +62,34 @@ export class AccountsService {
     return this.repository.getAll();
   }
 
-  async findOneByEmail(email: string) {
+  async findOneByEmail(email: string): Promise<AccountWithUserAndGame> {
     return this.repository.getOne({
       where: { user: { email } },
-      include: { user: true },
+      include: { user: true, game: true },
     });
   }
 
-  async findOneByAccountId(accountId: number) {
+  async findOneByAccountId(accountId: number): Promise<AccountWithUserAndGame> {
     return this.repository.getOne({
       where: { id: accountId },
       include: { user: true, game: true },
     });
   }
 
-  async storeRefreshToken(accountId: number, refreshToken: string) {
+  async storeRefreshToken(
+    accountId: number,
+    refreshToken: string,
+  ): Promise<Account> {
     return this.repository.update({
       where: { id: accountId },
       data: { refreshToken },
+    });
+  }
+
+  async removeRefreshToken(accountId: number): Promise<Account> {
+    return this.repository.update({
+      where: { id: accountId },
+      data: { refreshToken: null },
     });
   }
 
@@ -91,15 +104,10 @@ export class AccountsService {
     });
   }
 
-  async getAllAccountIds() {
-    return this.repository.getAll({
-      select: {
-        id: true,
-      },
-    });
-  }
-
-  async updateAccount(accountId: number, accountDto: AccountCreateDto) {
+  async updateAccount(
+    accountId: number,
+    accountDto: AccountCreateDto,
+  ): Promise<Account> {
     const { name } = accountDto;
     return this.repository.update({
       where: { id: accountId },
@@ -128,7 +136,7 @@ export class AccountsService {
     });
   }
 
-  async resetPassword(accountId: number) {
+  async resetPassword(accountId: number): Promise<Account> {
     const account: AccountWithUser = await this.repository.getById({
       where: { id: accountId },
       include: { user: true },
@@ -139,7 +147,7 @@ export class AccountsService {
         numbers: true,
       });
       const hashedPassword = await this.bcryptService.hashPassword(newPassword);
-      const accountUpdate = await this.repository.update({
+      const accountUpdate: Account = await this.repository.update({
         where: { id: accountId },
         data: { password: hashedPassword },
       });
