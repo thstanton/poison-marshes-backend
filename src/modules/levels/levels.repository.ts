@@ -10,7 +10,9 @@ export class LevelsRepository {
     where?: Prisma.LevelWhereInput;
     select?: Prisma.LevelSelect;
     include?: Prisma.LevelInclude;
-    orderBy?: Prisma.LevelOrderByWithRelationInput;
+    orderBy?:
+      | Prisma.LevelOrderByWithRelationInput
+      | Prisma.LevelOrderByWithRelationInput[];
   }): Promise<Level[]> {
     return this.prisma.level.findMany(params);
   }

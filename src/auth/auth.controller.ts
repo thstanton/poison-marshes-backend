@@ -31,6 +31,8 @@ export class AuthController {
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       signed: true,
       domain: undefined,
       secure: false,
@@ -39,6 +41,7 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       signed: true,
       domain: undefined,
       secure: false,
@@ -63,6 +66,8 @@ export class AuthController {
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
         signed: true,
         domain: undefined,
         secure: false,
@@ -71,6 +76,7 @@ export class AuthController {
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         signed: true,
         domain: undefined,
         secure: false,

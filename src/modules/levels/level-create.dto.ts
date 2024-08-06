@@ -6,7 +6,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
   ValidateNested,
 } from 'class-validator';
 import { EmailCreateDto } from '../resend/email.dto';
@@ -46,9 +45,9 @@ export class LevelCreateDto {
   @Type(() => EmailCreateDto)
   email?: EmailCreateDto;
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
-  videoUrl?: string;
+  videoId?: string;
 }
 
 export class LevelCreateManyDto {
@@ -75,7 +74,7 @@ export class LevelCreateManyDto {
   @IsArray()
   hints: string[];
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
-  videoUrl?: string;
+  videoId?: string;
 }

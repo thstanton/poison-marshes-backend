@@ -51,7 +51,7 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sub = accountId.toString();
     const payload: JwtPayload = { email: email, sub };
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
     const refreshTokenId = uuidv4();
     await this.accountsService.storeRefreshToken(accountId, refreshTokenId);

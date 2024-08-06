@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsArray, IsUrl } from 'class-validator';
+import { IsInt, IsOptional, IsArray, IsString } from 'class-validator';
 
 export class LevelUpdateDto {
   @IsOptional()
@@ -23,7 +23,7 @@ export class LevelUpdateDto {
   @IsArray()
   hint?: string[];
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
-  videoUrl?: string;
+  videoId?: string;
 }

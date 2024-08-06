@@ -37,16 +37,13 @@ export class LevelsService {
     return this.repository.getAll({
       where: {
         sequence: {
-          lte: sequence,
+          lt: sequence,
         },
         actSequence: {
           lte: actSequence,
         },
       },
-      orderBy: {
-        actSequence: 'asc',
-        sequence: 'asc',
-      },
+      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
     });
   }
 
@@ -122,7 +119,7 @@ export class LevelsService {
       solution,
       hints,
       email,
-      videoUrl,
+      videoId,
     } = levelCreateDto;
 
     const formattedData: Prisma.LevelCreateInput = {
@@ -139,7 +136,7 @@ export class LevelsService {
     };
 
     if (solution) formattedData.solution = solution;
-    if (videoUrl) formattedData.videoUrl = videoUrl;
+    if (videoId) formattedData.videoId = videoId;
     if (email) {
       formattedData.email = {
         create: {
