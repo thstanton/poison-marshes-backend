@@ -9,9 +9,7 @@ import {
 @Injectable()
 export class ResendService extends Resend {
   constructor() {
-    const apiKey = process.env.RESEND_API_KEY;
-    console.log(apiKey);
-    super('re_gFRD6yTX_DbFK8xKBqy8dz6hK4UFmNkta');
+    super(process.env.RESEND_API_KEY);
   }
 
   private readonly logger = new Logger(ResendService.name);

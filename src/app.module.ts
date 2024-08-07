@@ -8,9 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
 import { ActsModule } from './modules/acts/acts.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     UsersModule,
     ResendModule,

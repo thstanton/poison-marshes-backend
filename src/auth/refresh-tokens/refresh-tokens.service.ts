@@ -19,7 +19,7 @@ export class RefreshTokensService {
   ) {
     const newRefreshToken = this.jwtService.sign(
       { sub: accountId },
-      { secret: process.env.REFRESH_TOKEN_SECRET, expiresIn: '30d' },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '30d' },
     );
 
     if (currentRefreshToken && currentRefreshTokenExpiresAt) {

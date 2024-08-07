@@ -4,7 +4,7 @@ export function cookieAccessTokenExtractor(req: Request) {
   let accessToken: string;
 
   if (req && req.signedCookies) {
-    accessToken = req.signedCookies['accessToken'];
+    accessToken = req.signedCookies['access_token'];
   }
   return accessToken;
 }
@@ -13,7 +13,7 @@ export function cookieRefreshTokenExtractor(req: Request) {
   let refreshToken: string;
 
   if (req && req.signedCookies) {
-    refreshToken = req.signedCookies['refreshToken'];
+    refreshToken = req.signedCookies['refresh_token'];
   }
   return refreshToken;
 }

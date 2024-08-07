@@ -37,7 +37,7 @@ export class AuthController {
     const { access_token, refresh_token } =
       await this.authService.login(account);
 
-    res.cookie('accessToken', access_token, {
+    res.cookie('access_token', access_token, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -46,7 +46,7 @@ export class AuthController {
       secure: false,
     });
 
-    res.cookie('refreshToken', refresh_token, {
+    res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -79,7 +79,7 @@ export class AuthController {
           (req.account as any).refreshTokenExpiresAt,
         );
 
-      res.cookie('accessToken', access_token, {
+      res.cookie('access_token', access_token, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -88,7 +88,7 @@ export class AuthController {
         secure: false,
       });
 
-      res.cookie('refreshToken', refresh_token, {
+      res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

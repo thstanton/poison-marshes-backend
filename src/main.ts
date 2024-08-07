@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from './errors/prisma-client-exception/prisma-client-exception.filter';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
