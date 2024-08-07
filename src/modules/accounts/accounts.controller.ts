@@ -37,7 +37,7 @@ export class AccountsController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   async getAccount(@Param('id', ParseIntPipe) id: number) {
-    return this.accountsService.findOneByAccountId(id);
+    return this.accountsService.getOneByAccountIdWithUserAndGame(id);
   }
 
   @Delete(':id')

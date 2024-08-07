@@ -1,26 +1,25 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { JwtPayload } from 'src/types/custom-types';
 import { AuthService } from '../auth.service';
-import { cookieAccessTokenExtractor } from './jwt-cookie.extractor';
-import {
-  AccountWithUser,
-  AccountWithUserWithoutPassword,
-} from 'src/types/prisma-custom-types';
+import { AccountWithUser } from 'src/types/prisma-custom-types';
+import { cookieRefreshTokenExtractor } from './jwt-cookie.extractor';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(private authService: AuthService) {
     super({
-      jwtFromRequest: cookieAccessTokenExtractor,
+      jwtFromRequest: cookieRefreshTokenExtractor,
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: process.env.JWT_REFRESH_SECRET,
     });
   }
 
   // Checks account exists and returns the content of the token if the token has been successfully verified
-  async validate(payload: JwtPayload): Promise<AccountWithUserWithoutPassword> {
+  async validate(payload: any) {
     const { sub } = payload;
     const accountId = parseInt(sub);
 
@@ -34,6 +33,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = account;
 
-    return result;
+    return {
+      attributes: result,
+      refreshTokenExpiresAt: new Date(payload.exp * 1000),
+    };
   }
 }

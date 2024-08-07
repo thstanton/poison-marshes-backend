@@ -1,23 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AccountsService } from 'src/modules/accounts/accounts.service';
 import { BcryptService } from './bcrypt/bcrypt.service';
-import { JwtService } from '@nestjs/jwt';
-import { v4 as uuidv4 } from 'uuid';
 import {
   AccountWithUser,
-  AccountWithUserAndGame,
-  AccountWithUserAndGameWithoutPassword,
   AccountWithUserWithoutPassword,
 } from '../types/prisma-custom-types';
-import { JwtPayload } from 'src/types/custom-types';
-import { Account } from '@prisma/client';
+import { RefreshTokensService } from './refresh-tokens/refresh-tokens.service';
+import { Tokens } from 'src/types/custom-types';
 
 @Injectable()
 export class AuthService {
   constructor(
     private accountsService: AccountsService,
+    private refreshTokensService: RefreshTokensService,
     private bcryptService: BcryptService,
-    private jwtService: JwtService,
   ) {}
 
   private logger = new Logger(AuthService.name);
@@ -27,9 +23,9 @@ export class AuthService {
   async validateUserAccount(
     email: string,
     password: string,
-  ): Promise<AccountWithUserAndGameWithoutPassword | null> {
-    const account: AccountWithUserAndGame =
-      await this.accountsService.findOneByEmail(email);
+  ): Promise<AccountWithUserWithoutPassword | null> {
+    const account: AccountWithUser =
+      await this.accountsService.getOneByEmailWithUser(email);
     if (account) {
       const isMatch = await this.bcryptService.comparePassword(
         password,
@@ -38,76 +34,21 @@ export class AuthService {
 
       if (isMatch) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, refreshToken, ...result } = account;
+        const { password, ...result } = account;
         return result;
       }
     }
     return null;
   }
 
-  private async generateTokens(
-    accountId: number,
-    email: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sub = accountId.toString();
-    const payload: JwtPayload = { email: email, sub };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-
-    const refreshTokenId = uuidv4();
-    await this.accountsService.storeRefreshToken(accountId, refreshTokenId);
-
-    const refreshToken = this.jwtService.sign(
-      { refreshTokenId },
-      { expiresIn: '7d' },
-    );
-
-    return { accessToken, refreshToken };
+  // Called by JWTAuthGuard
+  async validateAccountById(accountId: number): Promise<AccountWithUser> {
+    return this.accountsService.getOneByAccountIdWithUser(accountId);
   }
 
   // Called by Auth Controller Login method following successful
   // validation by LocalAuthGuard, returns access & refresh tokens
-  async login(account: AccountWithUserWithoutPassword): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    account: AccountWithUserWithoutPassword;
-  }> {
-    const tokens = await this.generateTokens(account.id, account.user.email);
-    return { ...tokens, account };
-  }
-
-  async refreshTokens(_refreshToken: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    account: AccountWithUserWithoutPassword;
-  } | null> {
-    this.logger.debug('refreshTokens received: ' + _refreshToken);
-    try {
-      const { _refreshTokenId } = this.jwtService.verify(_refreshToken);
-      const account: AccountWithUser =
-        await this.accountsService.findAccountIdByRefreshToken(_refreshTokenId);
-
-      if (!account) {
-        throw new Error('Invalid refresh token');
-      }
-
-      const tokens = await this.generateTokens(account.id, account.user.email);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, refreshToken, ...result } = account;
-
-      return { ...tokens, account: { ...result } };
-    } catch (error) {
-      this.logger.error(error);
-    }
-  }
-
-  async validateAccountById(
-    accountId: number,
-  ): Promise<AccountWithUserAndGame> {
-    return this.accountsService.findOneByAccountId(accountId);
-  }
-
-  async removeRefreshToken(accountId: number): Promise<Account> {
-    return this.accountsService.removeRefreshToken(accountId);
+  async login(account: AccountWithUserWithoutPassword): Promise<Tokens> {
+    return this.refreshTokensService.generateTokenPair(account);
   }
 }

@@ -5,7 +5,6 @@ import {
   Param,
   Post,
   Put,
-  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -14,7 +13,6 @@ import { LevelsService } from './levels.service';
 import { LevelCreateDto } from './level-create.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { GuardedRequest } from 'src/types/custom-types';
 import { RolesGuard } from 'src/auth/roles-guard/roles.guard';
 import { LevelUpdateDto } from './level-update.dto';
 
@@ -34,12 +32,6 @@ export class LevelsController {
   @Roles('admin')
   async getAllLevels() {
     return this.levelsService.getAll();
-  }
-
-  @Get('/current/all')
-  async getAllLevelsToCurrent(@Req() req: GuardedRequest) {
-    const { levelId } = req.account.game;
-    return this.levelsService.getAllToCurrent(levelId);
   }
 
   @Get(':id')

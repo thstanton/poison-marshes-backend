@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { Prisma, User } from '@prisma/client';
+import { CreateBatchResponse } from 'src/types/resend-types';
+import { EmailCreateDto } from '../resend/email.dto';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private repository: UsersRepository) {}
+  constructor(
+    private repository: UsersRepository,
+    private resendService: ResendService,
+  ) {}
 
   async create(params: { email: string }): Promise<User> {
     const { email } = params;
@@ -32,5 +38,17 @@ export class UsersService {
     data: Prisma.UserUpdateInput;
   }): Promise<User> {
     return this.repository.update(params);
+  }
+
+  async emailAllUsers(email: EmailCreateDto): Promise<CreateBatchResponse> {
+    const users: string[] = await this.repository.getAll({
+      select: { email: true },
+    });
+    const response: CreateBatchResponse = await this.resendService.emailGroup(
+      email,
+      users,
+    );
+
+    return response;
   }
 }

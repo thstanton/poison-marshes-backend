@@ -17,11 +17,11 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailCreateDto, EmailSendDto } from 'src/modules/resend/email.dto';
 
 @Controller('api')
-export class ApiController {
+export class UsersController {
   constructor(
     private readonly userService: UsersService,
-    private readonly resendService: ResendService,
     private readonly jwtService: JwtService,
+    private readonly resendService: ResendService,
   ) {}
 
   private readonly logger = new Logger();
@@ -91,7 +91,7 @@ export class ApiController {
   @Post('email-all-users')
   @UsePipes(new ValidationPipe())
   async emailAllUsers(@Body() email: EmailCreateDto) {
-    return this.resendService.emailAllUsers(email);
+    return this.userService.emailAllUsers(email);
   }
 
   @Post('email-single-user')

@@ -62,44 +62,34 @@ export class AccountsService {
     return this.repository.getAll();
   }
 
-  async findOneByEmail(email: string): Promise<AccountWithUserAndGame> {
+  async getOneByEmailWithUserAndGame(
+    email: string,
+  ): Promise<AccountWithUserAndGame> {
     return this.repository.getOne({
       where: { user: { email } },
       include: { user: true, game: true },
     });
   }
 
-  async findOneByAccountId(accountId: number): Promise<AccountWithUserAndGame> {
+  async getOneByEmailWithUser(email: string): Promise<AccountWithUser> {
+    return this.repository.getOne({
+      where: { user: { email } },
+      include: { user: true },
+    });
+  }
+
+  async getOneByAccountIdWithUserAndGame(
+    accountId: number,
+  ): Promise<AccountWithUserAndGame> {
     return this.repository.getOne({
       where: { id: accountId },
       include: { user: true, game: true },
     });
   }
 
-  async storeRefreshToken(
-    accountId: number,
-    refreshToken: string,
-  ): Promise<Account> {
-    return this.repository.update({
-      where: { id: accountId },
-      data: { refreshToken },
-    });
-  }
-
-  async removeRefreshToken(accountId: number): Promise<Account> {
-    return this.repository.update({
-      where: { id: accountId },
-      data: { refreshToken: null },
-    });
-  }
-
-  async findAccountIdByRefreshToken(
-    refreshToken: string,
-  ): Promise<AccountWithUser> {
+  async getOneByAccountIdWithUser(accountId: number): Promise<AccountWithUser> {
     return this.repository.getOne({
-      where: {
-        refreshToken,
-      },
+      where: { id: accountId },
       include: { user: true },
     });
   }
