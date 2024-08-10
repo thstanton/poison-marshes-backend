@@ -23,15 +23,19 @@ export class LevelCreateDto {
   actSequence: number;
 
   @IsNotEmpty()
+  @IsString()
   name: string;
 
   @IsNotEmpty()
+  @IsString()
   flavourText: string;
 
   @IsNotEmpty()
+  @IsString()
   task: string;
 
   @IsOptional()
+  @IsString()
   solution?: string;
 
   @IsString({ each: true })

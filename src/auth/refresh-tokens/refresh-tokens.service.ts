@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { RefreshTokensRepository } from './refresh-tokens.repository';
 import { JwtService } from '@nestjs/jwt';
 import { AccountWithUserWithoutPassword } from 'src/types/prisma-custom-types';
@@ -12,6 +12,8 @@ export class RefreshTokensService {
     private jwtService: JwtService,
   ) {}
 
+  logger = new Logger(RefreshTokensService.name);
+
   async generateRefreshToken(
     accountId: number,
     currentRefreshToken?: string,
@@ -22,21 +24,27 @@ export class RefreshTokensService {
       { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '30d' },
     );
 
+    this.logger.debug(
+      `Checkout validity of refresh token: ${currentRefreshToken}`,
+    );
+
     if (currentRefreshToken && currentRefreshTokenExpiresAt) {
       if (await this.isRefreshTokenDenyListed(currentRefreshToken, accountId)) {
+        this.logger.debug(
+          `Refresh token ${currentRefreshToken} is on the deny list...`,
+        );
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      await this.repository.create({
-        data: {
-          token: newRefreshToken,
-          account: {
-            connect: { id: accountId },
-          },
-          expiresAt: currentRefreshTokenExpiresAt,
-        },
-      });
+      this.logger.debug(`Adding ${currentRefreshToken} to the deny list.`);
+      await this.denyListRefreshToken(
+        currentRefreshToken,
+        currentRefreshTokenExpiresAt,
+        accountId,
+      );
     }
+
+    this.logger.debug(`Generated new refresh token: ${newRefreshToken}`);
 
     return newRefreshToken;
   }
@@ -44,6 +52,22 @@ export class RefreshTokensService {
   private isRefreshTokenDenyListed(refreshToken: string, accountId: number) {
     return this.repository.findOne({
       where: { token: refreshToken, accountId },
+    });
+  }
+
+  async denyListRefreshToken(
+    refreshToken: string,
+    refreshTokenExpiresAt: Date,
+    accountId: number,
+  ) {
+    return this.repository.create({
+      data: {
+        token: refreshToken,
+        account: {
+          connect: { id: accountId },
+        },
+        expiresAt: refreshTokenExpiresAt,
+      },
     });
   }
 
@@ -65,6 +89,7 @@ export class RefreshTokensService {
 
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
   async clearExpiredRefreshTokens() {
+    this.logger.log('Clearing expired refresh tokens...');
     await this.repository.delete({ where: { expiresAt: { lt: new Date() } } });
   }
 }

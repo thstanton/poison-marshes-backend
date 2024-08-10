@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsArray, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsArray,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class LevelUpdateDto {
   @IsOptional()
@@ -8,15 +14,23 @@ export class LevelUpdateDto {
   sequence?: number;
 
   @IsOptional()
+  @IsString()
+  @MinLength(1)
   name?: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(1)
   flavourText?: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(1)
   task?: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(1)
   solution?: string;
 
   @IsOptional()
@@ -25,5 +39,6 @@ export class LevelUpdateDto {
 
   @IsString()
   @IsOptional()
+  @MinLength(1)
   videoId?: string;
 }

@@ -81,6 +81,19 @@ model Email {
   updatedAt DateTime @updatedAt
 }
 
+model ScheduledEmail {
+  id           Int      @id @default(autoincrement())
+  to           String
+  from         String
+  subject      String
+  text         String
+  html         String
+  scheduledFor DateTime
+  sent         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model RefreshToken {
   id        Int      @id @default(autoincrement())
   token     String

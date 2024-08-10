@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { LevelsRepository } from './levels.repository';
 import { ResendService } from '../resend/resend.service';
 import { EmailCreateDto, EmailSendDto } from '../resend/email.dto';
@@ -6,7 +6,10 @@ import { LevelCreateDto } from './level-create.dto';
 import { Level, Prisma } from '@prisma/client';
 import { LevelUpdateDto } from './level-update.dto';
 import { EmailUpdateDto } from '../resend/email-update.dto';
-import { LevelWithEmail } from 'src/types/prisma-custom-types';
+import {
+  LevelWithActAndEmail,
+  LevelWithEmail,
+} from 'src/types/prisma-custom-types';
 import { CreateEmailResponse } from 'src/types/resend-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
 
@@ -16,6 +19,8 @@ export class LevelsService {
     private repository: LevelsRepository,
     private resendService: ResendService,
   ) {}
+
+  private readonly logger = new Logger(LevelsService.name);
 
   async getById(id: number): Promise<Level> {
     return this.repository.getById({ where: { id } });
@@ -31,7 +36,18 @@ export class LevelsService {
     return this.repository.getAll();
   }
 
-  async getAllToCurrent(levelId: number): Promise<Level[]> {
+  async getAllNames() {
+    return this.repository.getAll({
+      select: {
+        name: true,
+        id: true,
+        sequence: true,
+        actSequence: true,
+      },
+    });
+  }
+
+  async getCompletedLevels(levelId: number): Promise<Level[]> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
 
     return this.repository.getAll({
@@ -44,6 +60,25 @@ export class LevelsService {
         },
       },
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+    });
+  }
+
+  async getNextLevelId(levelId: number): Promise<number[]> {
+    const { sequence, actSequence }: Level = await this.getById(levelId);
+    return this.repository.getAll({
+      where: {
+        sequence: {
+          gt: sequence,
+        },
+        actSequence: {
+          gte: actSequence,
+        },
+      },
+      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+      take: 1,
+      select: {
+        id: true,
+      },
     });
   }
 
@@ -72,39 +107,53 @@ export class LevelsService {
     return maxLevel.sequence;
   }
 
-  private async sendEmail(
-    userEmail: string,
-    email: EmailCreateDto,
-  ): Promise<CreateEmailResponse> {
-    const { from, subject, text, html } = email;
-    const sendEmail: EmailSendDto = {
-      to: userEmail,
-      from,
-      subject,
-      text,
-      html,
-    };
-
-    return this.resendService.emailSingleUser(sendEmail);
+  private async sendEmail(email: EmailSendDto): Promise<CreateEmailResponse> {
+    return this.resendService.emailSingleUser(email);
   }
 
   async initialiseLevel(
     levelId: number,
     userEmail: string,
   ): Promise<InitialiseLevelReturn> {
-    const level: LevelWithEmail = (await this.repository.getById({
+    const level: LevelWithActAndEmail = await this.repository.getById({
       where: { id: levelId },
-    })) as LevelWithEmail;
+      include: { act: true, email: true },
+    });
+
+    const email: EmailSendDto = {
+      to: userEmail,
+      from: level.email.from,
+      subject: level.email.subject,
+      text: level.email.text,
+      html: level.email.html,
+    };
 
     if (level.email) {
-      const emailResult: CreateEmailResponse = await this.sendEmail(
-        userEmail,
-        level.email,
-      );
-      return { level, email: emailResult };
+      if (level.act.inProgress) {
+        try {
+          const emailResponse = await this.sendEmail(email);
+          return { level, email: 'sent', emailResponse: emailResponse };
+        } catch (error) {
+          this.logger.error(error);
+        }
+      } else {
+        try {
+          const scheduleEmailResponse = await this.resendService.scheduleEmail({
+            ...email,
+            scheduledFor: level.act.startDate,
+          });
+          return {
+            level,
+            email: 'scheduled',
+            emailResponse: scheduleEmailResponse,
+          };
+        } catch (error) {
+          this.logger.error(error);
+        }
+      }
+    } else {
+      return { level, email: 'none', emailResponse: null };
     }
-
-    return { level, email: 'No email' };
   }
 
   private formatLevelData(

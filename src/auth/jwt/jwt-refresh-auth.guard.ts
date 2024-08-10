@@ -17,7 +17,10 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
 
     if (err || !user) {
       if (info) {
-        console.log('Authentication info: ', info.message || info);
+        console.log(
+          'Authentication info (JwtRefreshAuthGuard): ',
+          info.message || info,
+        );
       }
 
       throw err || new UnauthorizedException(info?.message || 'Unauthorized');

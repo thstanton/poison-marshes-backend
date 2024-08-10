@@ -13,12 +13,14 @@ export class LevelsRepository {
     orderBy?:
       | Prisma.LevelOrderByWithRelationInput
       | Prisma.LevelOrderByWithRelationInput[];
-  }): Promise<Level[]> {
+    take?: number;
+  }): Promise<any> {
     return this.prisma.level.findMany(params);
   }
 
   async getById(params: {
     where: Prisma.LevelWhereUniqueInput;
+    include?: Prisma.LevelInclude;
     select?: Prisma.LevelSelect;
   }): Promise<any> {
     return this.prisma.level.findUnique(params);

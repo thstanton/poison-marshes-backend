@@ -1,4 +1,4 @@
-import { Level } from '@prisma/client';
+import { Level, ScheduledEmail } from '@prisma/client';
 import { AccountWithUserWithoutPassword } from './prisma-custom-types';
 import { CreateEmailResponse } from './resend-types';
 
@@ -18,5 +18,6 @@ export type GuardedRequest = Request & {
 
 export interface InitialiseLevelReturn {
   level: Level;
-  email: CreateEmailResponse | 'No email';
+  email: 'sent' | 'scheduled' | 'none';
+  emailResponse: CreateEmailResponse | ScheduledEmail | null;
 }

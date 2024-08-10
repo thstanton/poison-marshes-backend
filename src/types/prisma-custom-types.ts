@@ -43,3 +43,10 @@ export type GameWithLevelAndAct = Prisma.GameGetPayload<{
     };
   };
 }>;
+
+export type LevelWithActAndEmail = Prisma.LevelGetPayload<{
+  include: {
+    act: true;
+    email: true;
+  };
+}>;

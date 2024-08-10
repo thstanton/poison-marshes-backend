@@ -51,4 +51,16 @@ export class AuthService {
   async login(account: AccountWithUserWithoutPassword): Promise<Tokens> {
     return this.refreshTokensService.generateTokenPair(account);
   }
+
+  async logout(
+    refreshToken: string,
+    refreshTokenExpiresAt: Date,
+    accountId: number,
+  ) {
+    return this.refreshTokensService.denyListRefreshToken(
+      refreshToken,
+      refreshTokenExpiresAt,
+      accountId,
+    );
+  }
 }

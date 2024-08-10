@@ -57,43 +57,33 @@ export class GamesService {
     });
   }
 
-  async levelUp(accountId: number, solution?: string) {
+  async levelUp(gameId: number, solution: string) {
     const game = await this.repository.getByAccount({
-      where: { accountId },
-      include: {
-        account: {
-          include: {
-            user: true,
-          },
-        },
-        level: true,
-      },
+      where: { id: gameId },
     });
 
     if (!game) throw new NotFoundException('Game not found');
 
-    if (
-      !game.level.solution ||
-      this.levelsService.trySolution(game.levelId, solution)
-    ) {
-      const maxLevel: number = await this.levelsService.getMaxLevel();
-      if (game.levelId === maxLevel) {
-        throw new Error('Max level reached');
-      }
-      // TODO: Validate that the user is moving to the correct level
-      // TODO: Fix level increase logic to use sequence instead of id
-      // TODO: Implement acts
-      const newLevel = await this.repository.increaseLevel(game.id);
+    if (this.levelsService.trySolution(game.levelId, solution)) {
+      const nextLevel = await this.levelsService.getNextLevelId(game.levelId);
+      if (nextLevel.length === 0) return { error: 'Max level reached' };
+      await this.increaseLevel(gameId, nextLevel[0]);
 
-      const emailResult = await this.levelsService.initialiseLevel(
-        newLevel.id,
-        game.account.user.email,
-      );
-
-      return { newLevel, emailResult };
+      return { level: nextLevel };
     } else {
       return { error: 'Incorrect solution' };
     }
+  }
+
+  private async increaseLevel(gameId: number, levelId: number) {
+    return this.repository.update({
+      where: { id: gameId },
+      data: {
+        level: {
+          connect: { id: levelId },
+        },
+      },
+    });
   }
 
   async getCurrentLevel(accountId: number) {

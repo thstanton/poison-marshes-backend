@@ -19,6 +19,10 @@ import { AccountWithUserWithoutPassword } from 'src/types/prisma-custom-types';
 import { Throttle } from '@nestjs/throttler';
 import { JwtRefreshAuthGuard } from './jwt/jwt-refresh-auth.guard';
 import { RefreshTokensService } from './refresh-tokens/refresh-tokens.service';
+import {
+  accessCookieOptions,
+  refreshCookieOptions,
+} from 'src/config/cookie-options';
 
 @Controller('auth')
 export class AuthController {
@@ -37,23 +41,8 @@ export class AuthController {
     const { access_token, refresh_token } =
       await this.authService.login(account);
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      signed: true,
-      domain: undefined,
-      secure: false,
-    });
-
-    res.cookie('refresh_token', refresh_token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      signed: true,
-      domain: undefined,
-      secure: false,
-    });
+    res.cookie('access_token', access_token, accessCookieOptions);
+    res.cookie('refresh_token', refresh_token, refreshCookieOptions);
 
     return res.status(HttpStatus.OK).json({
       account,
@@ -79,23 +68,8 @@ export class AuthController {
           (req.account as any).refreshTokenExpiresAt,
         );
 
-      res.cookie('access_token', access_token, {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        signed: true,
-        domain: undefined,
-        secure: false,
-      });
-
-      res.cookie('refresh_token', refresh_token, {
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        signed: true,
-        domain: undefined,
-        secure: false,
-      });
+      res.cookie('access_token', access_token, accessCookieOptions);
+      res.cookie('refresh_token', refresh_token, refreshCookieOptions);
 
       return res.status(HttpStatus.OK).json({
         account: req.account,
@@ -116,11 +90,25 @@ export class AuthController {
     return req.account;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtRefreshAuthGuard)
   @Post('logout')
-  async logout(@Req() @Res() res: Response) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+  async logout(
+    @Req() req: GuardedRequest,
+    @Res() res: Response,
+    @Cookies('refresh_token') refreshToken: string,
+  ) {
+    res.clearCookie('access_token', accessCookieOptions);
+    res.clearCookie('refresh_token', refreshCookieOptions);
+
+    if (!req.account) {
+      throw new InternalServerErrorException();
+    }
+
+    await this.authService.logout(
+      refreshToken.split(' ')[0],
+      (req.account as any).refreshTokenExpiresAt,
+      (req.account as any).attributes.id,
+    );
 
     return res.status(HttpStatus.OK).json({
       message: 'Logged out',
