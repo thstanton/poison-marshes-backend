@@ -58,6 +58,33 @@ export class AccountsService {
     return account;
   }
 
+  async createSuperUser(accountDto: AccountCreateDto) {
+    const { email, password, name } = accountDto;
+
+    let hashedPassword: string;
+    if (password) {
+      hashedPassword = await this.bcryptService.hashPassword(password);
+    }
+
+    const account = await this.repository.create({
+      data: {
+        name,
+        password: hashedPassword,
+        user: {
+          connectOrCreate: {
+            where: { email },
+            create: { email },
+          },
+        },
+        isAdmin: true,
+      },
+    });
+
+    this.logger.debug(`Superuser account for ${email}: ${account}`);
+
+    return account;
+  }
+
   async getAll() {
     return this.repository.getAll();
   }

@@ -27,6 +27,11 @@ export class AccountsController {
     return this.accountsService.create(account);
   }
 
+  @Post('register/super')
+  async registerSuperUser(@Body('account') account: AccountCreateDto) {
+    return this.accountsService.createSuperUser(account);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
