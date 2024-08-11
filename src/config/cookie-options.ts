@@ -7,6 +7,7 @@ export const accessCookieOptions: CookieOptions = {
   signed: true,
   domain: process.env.COOKIE_DOMAIN || undefined,
   secure: process.env.COOKIE_SECURE === 'true',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 };
 
 export const refreshCookieOptions: CookieOptions = {
@@ -16,4 +17,5 @@ export const refreshCookieOptions: CookieOptions = {
   signed: true,
   domain: process.env.COOKIE_DOMAIN || undefined,
   secure: process.env.COOKIE_SECURE === 'true',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 };
