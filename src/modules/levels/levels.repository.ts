@@ -35,7 +35,7 @@ export class LevelsRepository {
       | Prisma.LevelOrderByWithRelationInput[];
     take?: number;
   }): Promise<any> {
-    return this.prisma.level.findFirst(params);
+    return this.prisma.level.findFirstOrThrow(params);
   }
 
   async create(params: {
