@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsDateString,
+  IsDate,
   IsInt,
   IsOptional,
   IsString,
@@ -19,7 +19,7 @@ export class ActUpdateDto {
   name: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsDate()
   @Type(() => Date)
   startDate: Date;
 

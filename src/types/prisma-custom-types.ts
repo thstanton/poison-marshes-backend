@@ -28,6 +28,20 @@ export type GameWithAccountAndUser = Prisma.GameGetPayload<{
   };
 }>;
 
+export type GameWithUserEmail = Prisma.GameGetPayload<{
+  include: {
+    account: {
+      include: {
+        user: {
+          select: {
+            email: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
 export type LevelWithEmail = Prisma.LevelGetPayload<{
   include: {
     email: true;
@@ -49,4 +63,8 @@ export type LevelWithActAndEmail = Prisma.LevelGetPayload<{
     act: true;
     email: true;
   };
+}>;
+
+export type ScheduledEmailWithLevelEmail = Prisma.ScheduledEmailGetPayload<{
+  include: { level: { include: { email: true } } };
 }>;

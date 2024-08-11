@@ -70,7 +70,7 @@ export class LevelCreateManyDto {
   task: string;
 
   @IsOptional()
-  solution?: string;
+  solution: string;
 
   @IsString({ each: true })
   @ArrayMinSize(1)

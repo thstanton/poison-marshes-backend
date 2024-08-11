@@ -7,8 +7,8 @@ import {
 } from 'src/types/resend-types';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmailsRepository } from './emails.repository';
-import { ScheduledEmail } from '@prisma/client';
 import { ScheduledEmailDto } from './scheduled-email.dto';
+import { ScheduledEmailWithLevelEmail } from 'src/types/prisma-custom-types';
 
 @Injectable()
 export class ResendService extends Resend {
@@ -53,32 +53,46 @@ export class ResendService extends Resend {
       data: {
         to: email.to,
         scheduledFor: email.scheduledFor,
-        from: email.from,
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
+        level: {
+          connect: {
+            id: email.levelId,
+          },
+        },
       },
     });
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   async sendScheduledEmails() {
-    const emails: ScheduledEmail[] = await this.repository.getAll({
-      where: {
-        scheduledFor: { lte: new Date() },
-        sent: false,
+    const emails: ScheduledEmailWithLevelEmail[] = await this.repository.getAll(
+      {
+        where: {
+          scheduledFor: { lte: new Date() },
+          sent: false,
+          level: {
+            email: {
+              isNot: null,
+            },
+            act: {
+              inProgress: true,
+            },
+          },
+        },
+        include: { level: { include: { email: true } } },
       },
-    });
+    );
 
-    const batch: EmailSendDto[] = emails.map((email) => {
-      return {
-        from: email.from,
-        to: email.to,
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
-      };
-    });
+    const batch: EmailSendDto[] = emails.map(
+      (email: ScheduledEmailWithLevelEmail) => {
+        return {
+          from: email.level.email.from,
+          to: email.to,
+          subject: email.level.email.subject,
+          text: email.level.email.text,
+          html: email.level.email.html,
+        };
+      },
+    );
 
     const response: CreateBatchResponse = await this.batch.send(batch);
     this.logger.log(`Batch sending scheduled emails: ${response}`);

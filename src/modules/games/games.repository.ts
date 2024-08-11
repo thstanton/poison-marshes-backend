@@ -11,7 +11,7 @@ export class GamesRepository {
     return this.prisma.game.findUnique({ ...params, include: { level: true } });
   }
 
-  async getByAccount(params: {
+  async getOne(params: {
     where: Prisma.GameWhereUniqueInput;
     include?: Prisma.GameInclude;
     select?: Prisma.GameSelect;
@@ -70,7 +70,9 @@ export class GamesRepository {
   async update(params: {
     where: Prisma.GameWhereUniqueInput;
     data: Prisma.GameUpdateInput;
-  }) {
+    include?: Prisma.GameInclude;
+    select?: Prisma.GameSelect;
+  }): Promise<any> {
     return this.prisma.game.update(params);
   }
 

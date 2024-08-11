@@ -68,6 +68,11 @@ export class LevelsController {
     return this.levelsService.getCompletedLevels(id);
   }
 
+  @Get('next-level/:id')
+  async getNextLevel(@Param('id') id: number) {
+    return this.levelsService.getNextLevelId(id);
+  }
+
   @Put(':id')
   @Roles('admin')
   async updateLevel(

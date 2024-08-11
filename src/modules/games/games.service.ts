@@ -1,11 +1,19 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { GamesRepository } from './games.repository';
 import { LevelsService } from '../levels/levels.service';
 import {
   GameWithAccountAndUser,
   GameWithLevelAndAct,
+  GameWithUserEmail,
 } from 'src/types/prisma-custom-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
+import { Game } from '@prisma/client';
 
 @Injectable()
 export class GamesService {
@@ -51,31 +59,86 @@ export class GamesService {
   }
 
   async getCurrent(accountId: number): Promise<GameWithLevelAndAct> {
-    return this.repository.getByAccount({
+    return this.repository.getOne({
       where: { accountId },
       include: { level: { include: { act: true } } },
     });
   }
 
-  async levelUp(gameId: number, solution: string) {
-    const game = await this.repository.getByAccount({
-      where: { id: gameId },
+  async levelUp(accountId: number, solution: string) {
+    const game: Game = await this.repository.getOne({
+      where: { accountId },
     });
 
     if (!game) throw new NotFoundException('Game not found');
 
-    if (this.levelsService.trySolution(game.levelId, solution)) {
-      const nextLevel = await this.levelsService.getNextLevelId(game.levelId);
-      if (nextLevel.length === 0) return { error: 'Max level reached' };
-      await this.increaseLevel(gameId, nextLevel[0]);
+    const solutionIsCorrect = await this.levelsService.trySolution(
+      game.levelId,
+      solution,
+    );
 
-      return { level: nextLevel };
+    if (solutionIsCorrect) {
+      try {
+        const nextLevel: { id: number } =
+          await this.levelsService.getNextLevelId(game.levelId);
+
+        await this.increaseLevel(game.id, nextLevel.id).then(
+          (data: GameWithUserEmail) => {
+            this.logger.log(
+              `Increased level for Game: ${data.accountId}, User: ${data.account.user.email}`,
+            );
+            this.levelsService.initialiseLevel(
+              data.levelId,
+              data.account.user.email,
+            );
+          },
+        );
+
+        return { level: nextLevel };
+      } catch (error) {
+        throw new HttpException(
+          'Cannot increase level',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     } else {
-      return { error: 'Incorrect solution' };
+      throw new HttpException(
+        'Incorrect solution',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
   }
 
-  private async increaseLevel(gameId: number, levelId: number) {
+  private async increaseLevel(
+    gameId: number,
+    levelId: number,
+  ): Promise<GameWithUserEmail> {
+    return this.repository.update({
+      where: { id: gameId },
+      data: {
+        level: {
+          connect: { id: levelId },
+        },
+      },
+      include: {
+        account: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getCurrentLevel(accountId: number) {
+    return this.repository.getCurrentLevel({ where: { id: accountId } });
+  }
+
+  async update(gameId: number, levelId: number) {
     return this.repository.update({
       where: { id: gameId },
       data: {
@@ -84,9 +147,5 @@ export class GamesService {
         },
       },
     });
-  }
-
-  async getCurrentLevel(accountId: number) {
-    return this.repository.getCurrentLevel({ where: { id: accountId } });
   }
 }

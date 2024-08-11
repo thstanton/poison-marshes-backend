@@ -16,6 +16,7 @@ export class EmailsRepository {
   async getAll(params?: {
     where?: Prisma.ScheduledEmailWhereInput;
     select?: Prisma.ScheduledEmailSelect;
+    include?: Prisma.ScheduledEmailInclude;
   }): Promise<any> {
     return this.prisma.scheduledEmail.findMany(params);
   }

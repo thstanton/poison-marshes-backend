@@ -33,7 +33,9 @@ export class LevelsService {
   }
 
   async getAll(): Promise<Level[]> {
-    return this.repository.getAll();
+    return this.repository.getAll({
+      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+    });
   }
 
   async getAllNames() {
@@ -59,23 +61,29 @@ export class LevelsService {
           lte: actSequence,
         },
       },
-      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+      orderBy: [{ actSequence: 'desc' }, { sequence: 'desc' }],
     });
   }
 
-  async getNextLevelId(levelId: number): Promise<number[]> {
+  async getNextLevelId(levelId: number): Promise<{ id: number }> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
-    return this.repository.getAll({
+    return this.repository.getOne({
       where: {
-        sequence: {
-          gt: sequence,
-        },
-        actSequence: {
-          gte: actSequence,
-        },
+        OR: [
+          {
+            actSequence,
+            sequence: {
+              gt: sequence,
+            },
+          },
+          {
+            actSequence: {
+              gt: actSequence,
+            },
+          },
+        ],
       },
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
-      take: 1,
       select: {
         id: true,
       },
@@ -92,19 +100,6 @@ export class LevelsService {
       return true;
     }
     return false;
-  }
-
-  async getMaxLevel(): Promise<number> {
-    const maxLevel: Level = (await this.repository.getOne({
-      orderBy: {
-        sequence: 'desc',
-      },
-      take: 1,
-      select: {
-        id: true,
-      },
-    })) as Level;
-    return maxLevel.sequence;
   }
 
   private async sendEmail(email: EmailSendDto): Promise<CreateEmailResponse> {
@@ -139,8 +134,9 @@ export class LevelsService {
       } else {
         try {
           const scheduleEmailResponse = await this.resendService.scheduleEmail({
-            ...email,
+            to: userEmail,
             scheduledFor: level.act.startDate,
+            levelId: level.id,
           });
           return {
             level,
@@ -177,6 +173,7 @@ export class LevelsService {
       flavourText,
       task,
       hints,
+      solution,
       act: {
         connect: {
           sequence: actSequence,
@@ -184,7 +181,6 @@ export class LevelsService {
       },
     };
 
-    if (solution) formattedData.solution = solution;
     if (videoId) formattedData.videoId = videoId;
     if (email) {
       formattedData.email = {

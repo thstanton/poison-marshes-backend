@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   Logger,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
@@ -39,10 +41,19 @@ export class GamesController {
   @Put('advance-level')
   async advanceLevel(
     @Req() req: GuardedRequest,
-    @Body('solution') solution?: string,
+    @Body('solution') solution: string,
   ) {
     const { id }: AccountWithUserWithoutPassword = req.account;
     return this.gamesService.levelUp(id, solution);
+  }
+
+  @Roles('admin')
+  @Put('update/:gameId/:levelId')
+  async update(
+    @Param('gameId', ParseIntPipe) gameId: number,
+    @Param('levelId', ParseIntPipe) levelId: number,
+  ) {
+    return this.gamesService.update(gameId, levelId);
   }
 
   @Get('current')

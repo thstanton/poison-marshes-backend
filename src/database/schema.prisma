@@ -41,20 +41,21 @@ model Game {
 }
 
 model Level {
-  id          Int      @id @default(autoincrement())
-  sequence    Int
-  name        String
-  flavourText String
-  task        String
-  solution    String?
-  hints       String[]
-  email       Email?
-  videoId     String?
-  games       Game[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  act         Act      @relation(fields: [actSequence], references: [sequence], onDelete: Cascade, onUpdate: Cascade)
-  actSequence Int
+  id             Int              @id @default(autoincrement())
+  sequence       Int
+  name           String
+  flavourText    String
+  task           String
+  solution       String
+  hints          String[]
+  email          Email?
+  videoId        String?
+  games          Game[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  act            Act              @relation(fields: [actSequence], references: [sequence], onDelete: Cascade, onUpdate: Cascade)
+  actSequence    Int
+  ScheduledEmail ScheduledEmail[]
 
   @@unique([sequence, actSequence])
 }
@@ -84,10 +85,8 @@ model Email {
 model ScheduledEmail {
   id           Int      @id @default(autoincrement())
   to           String
-  from         String
-  subject      String
-  text         String
-  html         String
+  levelId      Int
+  level        Level    @relation(fields: [levelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   scheduledFor DateTime
   sent         Boolean  @default(false)
   createdAt    DateTime @default(now())
