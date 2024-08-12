@@ -7,5 +7,6 @@ export class QrCodesService {
 
   async scanQrCode(levelId: number) {
     const level = await this.levelsService.getById(levelId);
+    return { id: level.id, solution: level.solution };
   }
 }
