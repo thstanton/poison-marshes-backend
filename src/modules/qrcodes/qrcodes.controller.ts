@@ -25,7 +25,7 @@ export class QrCodesController {
       return level;
     } else {
       res.redirect(
-        `${process.env.FRONTEND_URL}/code/${level.id}?solution=${level.solution}`,
+        `${process.env.FRONTEND_URL}/codes/${level.id}?solution=${level.solution}`,
       );
     }
   }
