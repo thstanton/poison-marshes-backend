@@ -52,17 +52,25 @@ export class LevelsService {
   async getCompletedLevels(levelId: number): Promise<Level[]> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
 
-    return this.repository.getAll({
+    const levels = await this.repository.getAll({
       where: {
-        sequence: {
-          lt: sequence,
-        },
-        actSequence: {
-          lte: actSequence,
-        },
+        OR: [
+          {
+            actSequence,
+            sequence: {
+              lt: sequence,
+            },
+          },
+          {
+            actSequence: {
+              lt: actSequence,
+            },
+          },
+        ],
       },
       orderBy: [{ actSequence: 'desc' }, { sequence: 'desc' }],
     });
+    return levels;
   }
 
   async getNextLevelId(levelId: number): Promise<{ id: number }> {
