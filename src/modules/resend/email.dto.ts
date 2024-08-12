@@ -1,20 +1,39 @@
-import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
-export class EmailDto {
+export class EmailCreateDto {
   @IsNotEmpty()
   @IsEmail({
     require_display_name: true,
   })
   from: string;
 
-  @IsOptional()
+  @IsNotEmpty()
+  subject: string;
+
+  @IsNotEmpty()
+  text: string;
+
+  @IsNotEmpty()
+  html: string;
+}
+
+export class EmailSendDto {
+  @IsNotEmpty()
+  @IsEmail({
+    require_display_name: true,
+  })
+  from: string;
+
+  @IsNotEmpty()
   @IsEmail()
-  to?: string;
+  to: string;
 
   @IsNotEmpty()
   subject: string;
 
   @IsNotEmpty()
   text: string;
+
+  @IsNotEmpty()
   html: string;
 }

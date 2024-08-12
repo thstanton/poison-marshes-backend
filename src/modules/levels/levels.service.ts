@@ -1,9 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { LevelsRepository } from './levels.repository';
 import { ResendService } from '../resend/resend.service';
-import { EmailDto } from '../resend/email.dto';
-import { LevelCreateDto, LevelCreateManyDto } from './level-create.dto';
-import { Prisma } from '@prisma/client';
+import { EmailCreateDto, EmailSendDto } from '../resend/email.dto';
+import { LevelCreateDto } from './level-create.dto';
+import { Level, Prisma } from '@prisma/client';
+import { LevelUpdateDto } from './level-update.dto';
+import { EmailUpdateDto } from '../resend/email-update.dto';
+import {
+  LevelWithActAndEmail,
+  LevelWithEmail,
+} from 'src/types/prisma-custom-types';
+import { CreateEmailResponse } from 'src/types/resend-types';
+import { InitialiseLevelReturn } from 'src/types/custom-types';
 
 @Injectable()
 export class LevelsService {
@@ -12,36 +20,143 @@ export class LevelsService {
     private resendService: ResendService,
   ) {}
 
-  async getOne(id: number) {
-    return this.repository.getById(id);
+  private readonly logger = new Logger(LevelsService.name);
+
+  async getById(id: number): Promise<Level> {
+    return this.repository.getById({ where: { id } });
   }
 
-  async trySolution(levelId: number, solution: string) {
-    const level = await this.repository.getById(levelId);
-    const cleanSolution = solution.trim().toLowerCase();
-    if (level.solution === cleanSolution) {
+  async getByActAndSequence(act: number, sequence: number): Promise<Level> {
+    return this.repository.getOne({
+      where: { sequence, act: { sequence: act } },
+    });
+  }
+
+  async getAll(): Promise<Level[]> {
+    return this.repository.getAll({
+      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+    });
+  }
+
+  async getAllNames() {
+    return this.repository.getAll({
+      select: {
+        name: true,
+        id: true,
+        sequence: true,
+        actSequence: true,
+      },
+    });
+  }
+
+  async getCompletedLevels(levelId: number): Promise<Level[]> {
+    const { sequence, actSequence }: Level = await this.getById(levelId);
+
+    const levels = await this.repository.getAll({
+      where: {
+        OR: [
+          {
+            actSequence,
+            sequence: {
+              lt: sequence,
+            },
+          },
+          {
+            actSequence: {
+              lt: actSequence,
+            },
+          },
+        ],
+      },
+      orderBy: [{ actSequence: 'desc' }, { sequence: 'desc' }],
+    });
+    return levels;
+  }
+
+  async getNextLevelId(levelId: number): Promise<{ id: number }> {
+    const { sequence, actSequence }: Level = await this.getById(levelId);
+    return this.repository.getOne({
+      where: {
+        OR: [
+          {
+            actSequence,
+            sequence: {
+              gt: sequence,
+            },
+          },
+          {
+            actSequence: {
+              gt: actSequence,
+            },
+          },
+        ],
+      },
+      orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async trySolution(levelId: number, solution: string): Promise<boolean> {
+    const level = await this.repository.getById({ where: { id: levelId } });
+
+    const cleanUserSolution = solution.trim().toLowerCase();
+    const cleanLevelSolution = level.solution.trim().toLowerCase();
+
+    if (cleanLevelSolution === cleanUserSolution) {
       return true;
     }
     return false;
   }
 
-  async getMaxLevel() {
-    const maxLevel = await this.repository.getMaxLevel();
-    return maxLevel.id;
+  private async sendEmail(email: EmailSendDto): Promise<CreateEmailResponse> {
+    return this.resendService.emailSingleUser(email);
   }
 
-  async initialiseLevel(levelId: number, userEmail: string) {
-    const level = await this.repository.levelHasEmail(levelId);
+  async initialiseLevel(
+    levelId: number,
+    userEmail: string,
+  ): Promise<InitialiseLevelReturn> {
+    const level: LevelWithActAndEmail = await this.repository.getById({
+      where: { id: levelId },
+      include: { act: true, email: true },
+    });
+
+    const email: EmailSendDto = {
+      to: userEmail,
+      from: level.email.from,
+      subject: level.email.subject,
+      text: level.email.text,
+      html: level.email.html,
+    };
+
     if (level.email) {
-      const { from, subject, text, html } = level.email;
-      const email: EmailDto = {
-        to: userEmail,
-        from,
-        subject,
-        text,
-        html,
-      };
-      await this.resendService.emailSingleUser(email);
+      if (level.act.inProgress) {
+        try {
+          const emailResponse = await this.sendEmail(email);
+          return { level, email: 'sent', emailResponse: emailResponse };
+        } catch (error) {
+          this.logger.error(error);
+        }
+      } else {
+        try {
+          const scheduleEmailResponse = await this.resendService.scheduleEmail({
+            to: userEmail,
+            scheduledFor: level.act.startDate,
+            levelId: level.id,
+          });
+          return {
+            level,
+            email: 'scheduled',
+            emailResponse: scheduleEmailResponse,
+          };
+        } catch (error) {
+          this.logger.error(error);
+        }
+      }
+    } else {
+      return { level, email: 'none', emailResponse: null };
     }
   }
 
@@ -49,28 +164,32 @@ export class LevelsService {
     levelCreateDto: LevelCreateDto,
   ): Prisma.LevelCreateInput {
     const {
-      id,
-      act,
+      sequence,
+      actSequence,
       name,
       flavourText,
       task,
       solution,
-      hint,
+      hints,
       email,
-      videoUrl,
+      videoId,
     } = levelCreateDto;
 
     const formattedData: Prisma.LevelCreateInput = {
-      id,
-      act,
+      sequence,
       name,
       flavourText,
       task,
-      hint,
+      hints,
+      solution,
+      act: {
+        connect: {
+          sequence: actSequence,
+        },
+      },
     };
 
-    if (solution) formattedData.solution = solution;
-    if (videoUrl) formattedData.videoUrl = videoUrl;
+    if (videoId) formattedData.videoId = videoId;
     if (email) {
       formattedData.email = {
         create: {
@@ -85,38 +204,65 @@ export class LevelsService {
     return formattedData;
   }
 
-  private formatManyLevelsData(
-    levelCreateManyDto: LevelCreateManyDto,
-  ): Prisma.LevelCreateManyInput {
-    const { id, act, name, flavourText, task, solution, hint, videoUrl } =
-      levelCreateManyDto;
-
-    const formattedData: Prisma.LevelCreateManyInput = {
-      id,
-      act,
-      name,
-      flavourText,
-      task,
-      hint,
-    };
-
-    if (solution) formattedData.solution = solution;
-    if (videoUrl) formattedData.videoUrl = videoUrl;
-
-    return formattedData;
-  }
-
-  async createLevel(levelCreateDto: LevelCreateDto) {
+  async createLevel(levelCreateDto: LevelCreateDto): Promise<Level> {
     const data = this.formatLevelData(levelCreateDto);
     return this.repository.create({ data });
   }
 
-  async createManyLevels(levels: LevelCreateManyDto[]) {
-    const data: Prisma.LevelCreateManyInput[] = [];
-    levels.forEach((level) => {
-      const formattedLevel = this.formatManyLevelsData(level);
-      data.push(formattedLevel);
-    });
-    return this.repository.createMany({ data });
+  async createLevelEmail(
+    email: EmailCreateDto,
+    levelId: number,
+  ): Promise<LevelWithEmail> {
+    const { from, subject, text, html } = email;
+    return this.repository.update({
+      where: {
+        id: levelId,
+      },
+      data: {
+        email: {
+          create: {
+            from,
+            subject,
+            text,
+            html,
+          },
+        },
+      },
+      include: {
+        email: true,
+      },
+    }) as Promise<LevelWithEmail>;
+  }
+
+  async updateLevel(
+    levelId: number,
+    levelUpdateDto: LevelUpdateDto,
+  ): Promise<Level> {
+    return this.repository.update({
+      where: {
+        id: levelId,
+      },
+      data: {
+        ...levelUpdateDto,
+      },
+    }) as Promise<Level>;
+  }
+
+  async updateLevelEmail(
+    levelId: number,
+    emailUpdateDto: EmailUpdateDto,
+  ): Promise<LevelWithEmail> {
+    return this.repository.update({
+      where: {
+        id: levelId,
+      },
+      data: {
+        email: {
+          update: {
+            ...emailUpdateDto,
+          },
+        },
+      },
+    }) as Promise<LevelWithEmail>;
   }
 }

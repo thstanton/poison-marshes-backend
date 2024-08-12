@@ -1,45 +1,68 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Level, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class LevelsRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getAll() {
-    return this.prisma.level.findMany();
+  async getAll(params?: {
+    where?: Prisma.LevelWhereInput;
+    select?: Prisma.LevelSelect;
+    include?: Prisma.LevelInclude;
+    orderBy?:
+      | Prisma.LevelOrderByWithRelationInput
+      | Prisma.LevelOrderByWithRelationInput[];
+    take?: number;
+  }): Promise<any> {
+    return this.prisma.level.findMany(params);
   }
 
-  async getById(id: number) {
-    return this.prisma.level.findUnique({ where: { id } });
+  async getById(params: {
+    where: Prisma.LevelWhereUniqueInput;
+    include?: Prisma.LevelInclude;
+    select?: Prisma.LevelSelect;
+  }): Promise<any> {
+    return this.prisma.level.findUnique(params);
   }
 
-  async levelHasEmail(levelId: number) {
-    return this.prisma.level.findUnique({
-      where: { id: levelId },
-      include: {
-        email: true,
-      },
-    });
+  async getOne(params: {
+    where?: Prisma.LevelWhereInput;
+    include?: Prisma.LevelInclude;
+    select?: Prisma.LevelSelect;
+    orderBy?:
+      | Prisma.LevelOrderByWithRelationInput
+      | Prisma.LevelOrderByWithRelationInput[];
+    take?: number;
+  }): Promise<any> {
+    return this.prisma.level.findFirstOrThrow(params);
   }
 
-  async getMaxLevel() {
-    return this.prisma.level.findFirst({
-      orderBy: {
-        id: 'desc',
-      },
-      take: 1,
-      select: {
-        id: true,
-      },
-    });
-  }
-
-  async create(params: { data: Prisma.LevelCreateInput }) {
+  async create(params: {
+    data: Prisma.LevelCreateInput;
+    include?: Prisma.LevelInclude;
+  }): Promise<Level> {
     return this.prisma.level.create(params);
   }
 
-  async createMany(params: { data: Prisma.LevelCreateManyInput[] }) {
-    return this.prisma.level.createMany(params);
+  async update(params: {
+    data: Prisma.LevelUpdateInput;
+    where: Prisma.LevelWhereUniqueInput;
+    select?: Prisma.LevelSelect | null;
+    include?: Prisma.LevelInclude | null;
+  }): Promise<any> {
+    return this.prisma.level.update(params);
+  }
+
+  async createMany(params: {
+    data: Prisma.LevelCreateManyInput[];
+  }): Promise<Level[]> {
+    return this.prisma.level.createManyAndReturn(params);
+  }
+
+  async delete(params: {
+    where: Prisma.LevelWhereUniqueInput;
+  }): Promise<Level> {
+    return this.prisma.level.delete(params);
   }
 }

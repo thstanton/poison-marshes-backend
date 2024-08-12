@@ -1,21 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AccountsService } from 'src/modules/accounts/accounts.service';
 import { BcryptService } from './bcrypt/bcrypt.service';
-import { JwtService } from '@nestjs/jwt';
-import { v4 as uuidv4 } from 'uuid';
 import {
   AccountWithUser,
   AccountWithUserWithoutPassword,
 } from '../types/prisma-custom-types';
-import { JwtPayload } from 'src/types/custom-types';
+import { RefreshTokensService } from './refresh-tokens/refresh-tokens.service';
+import { Tokens } from 'src/types/custom-types';
 
 @Injectable()
 export class AuthService {
   constructor(
     private accountsService: AccountsService,
+    private refreshTokensService: RefreshTokensService,
     private bcryptService: BcryptService,
-    private jwtService: JwtService,
   ) {}
+
+  private logger = new Logger(AuthService.name);
 
   // Validates user email and password for Passport Local Strategy,
   // Called by validate method of LocalAuthGuard
@@ -23,9 +24,8 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<AccountWithUserWithoutPassword | null> {
-    console.log('Validate user function runs');
     const account: AccountWithUser =
-      await this.accountsService.findOneByEmail(email);
+      await this.accountsService.getOneByEmailWithUser(email);
     if (account) {
       const isMatch = await this.bcryptService.comparePassword(
         password,
@@ -41,54 +41,26 @@ export class AuthService {
     return null;
   }
 
-  private async generateTokens(
-    account: AccountWithUserWithoutPassword,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sub = account.id.toString();
-    const payload: JwtPayload = { email: account.user.email, sub };
-    const accessToken = this.jwtService.sign(payload);
-
-    const refreshTokenId = uuidv4();
-    await this.accountsService.storeRefreshToken(account.id, refreshTokenId);
-
-    const refreshToken = this.jwtService.sign(
-      { refreshTokenId },
-      { expiresIn: '7d' },
-    );
-
-    return { accessToken, refreshToken };
+  // Called by JWTAuthGuard
+  async validateAccountById(accountId: number): Promise<AccountWithUser> {
+    return this.accountsService.getOneByAccountIdWithUser(accountId);
   }
 
   // Called by Auth Controller Login method following successful
   // validation by LocalAuthGuard, returns access & refresh tokens
-  async login(account: AccountWithUserWithoutPassword): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> {
-    console.log('Login function runs');
-    return this.generateTokens(account);
+  async login(account: AccountWithUserWithoutPassword): Promise<Tokens> {
+    return this.refreshTokensService.generateTokenPair(account);
   }
 
-  async refreshTokens(refreshToken: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  } | null> {
-    try {
-      const { refreshTokenId } = this.jwtService.verify(refreshToken);
-      const account =
-        await this.accountsService.findAccountIdByRefreshToken(refreshTokenId);
-
-      if (!account) {
-        throw new Error('Invalid refresh token');
-      }
-
-      return this.generateTokens(account);
-    } catch (error) {
-      throw new Error('Invalid refresh token');
-    }
-  }
-
-  async validateAccountById(accountId: number) {
-    return this.accountsService.findOneByAccountId(accountId);
+  async logout(
+    refreshToken: string,
+    refreshTokenExpiresAt: Date,
+    accountId: number,
+  ) {
+    return this.refreshTokensService.denyListRefreshToken(
+      refreshToken,
+      refreshTokenExpiresAt,
+      accountId,
+    );
   }
 }

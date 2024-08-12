@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ApiModule } from './api/api.module';
 import { UsersModule } from './modules/users/users.module';
 import { ResendModule } from './modules/resend/resend.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
@@ -8,11 +7,13 @@ import { GamesModule } from './modules/games/games.module';
 import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
+import { ActsModule } from './modules/acts/acts.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot({}),
-    ApiModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     UsersModule,
     ResendModule,
     AccountsModule,
@@ -20,6 +21,7 @@ import { QrCodesModule } from './modules/qrcodes/qrcodes.module';
     GamesModule,
     AuthModule,
     QrCodesModule,
+    ActsModule,
   ],
   controllers: [],
   providers: [],

@@ -7,27 +7,16 @@ import { GameWithAccountAndUser } from 'src/types/prisma-custom-types';
 export class GamesRepository {
   constructor(private prisma: PrismaService) {}
 
-  async increaseLevel(id: number) {
-    return this.prisma.game.update({
-      where: { id },
-      data: { levelId: { increment: 1 } },
-    });
-  }
-
   async getCurrentLevel(params: { where: Prisma.GameWhereUniqueInput }) {
     return this.prisma.game.findUnique({ ...params, include: { level: true } });
   }
 
-  async getByAccountWithLevelAndUser(accountId: number) {
-    return this.prisma.game.findUnique({
-      where: { accountId },
-      include: {
-        level: true,
-        account: {
-          include: { user: true },
-        },
-      },
-    });
+  async getOne(params: {
+    where: Prisma.GameWhereUniqueInput;
+    include?: Prisma.GameInclude;
+    select?: Prisma.GameSelect;
+  }): Promise<any> {
+    return this.prisma.game.findUnique(params);
   }
 
   async getAll(params?: {
@@ -53,7 +42,16 @@ export class GamesRepository {
   }
 
   async createNew(params: { data: Prisma.GameCreateInput }) {
-    return this.prisma.game.create(params);
+    return this.prisma.game.create({
+      ...params,
+      include: {
+        account: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
   }
 
   async createMany(params: { data: Prisma.GameCreateManyInput[] }) {
@@ -67,6 +65,15 @@ export class GamesRepository {
         },
       },
     });
+  }
+
+  async update(params: {
+    where: Prisma.GameWhereUniqueInput;
+    data: Prisma.GameUpdateInput;
+    include?: Prisma.GameInclude;
+    select?: Prisma.GameSelect;
+  }): Promise<any> {
+    return this.prisma.game.update(params);
   }
 
   async delete(id: number) {

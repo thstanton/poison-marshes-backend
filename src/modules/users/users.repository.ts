@@ -17,8 +17,13 @@ export class UsersRepository {
     return this.prisma.user.update(params);
   }
 
-  async getAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+  async getAll(params?: {
+    select?: Prisma.UserSelect;
+    where?: Prisma.UserWhereInput;
+    include?: Prisma.UserInclude;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+  }): Promise<any> {
+    return this.prisma.user.findMany(params);
   }
 
   async getById(id: number) {

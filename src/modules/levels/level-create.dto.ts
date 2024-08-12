@@ -1,38 +1,64 @@
-import { IsNotEmpty, IsUrl } from 'class-validator';
-import { EmailDto } from '../resend/email.dto';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { EmailCreateDto } from '../resend/email.dto';
+import { Type } from 'class-transformer';
 
 export class LevelCreateDto {
   @IsNotEmpty()
-  id: number;
+  @IsInt()
+  @Type(() => Number)
+  sequence: number;
 
   @IsNotEmpty()
-  act: number;
+  @IsInt()
+  @Type(() => Number)
+  actSequence: number;
 
   @IsNotEmpty()
+  @IsString()
   name: string;
 
   @IsNotEmpty()
+  @IsString()
   flavourText: string;
 
   @IsNotEmpty()
+  @IsString()
   task: string;
 
+  @IsOptional()
+  @IsString()
   solution?: string;
 
-  hint: string[];
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(3)
+  @IsArray()
+  hints: string[];
 
-  email?: EmailDto;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EmailCreateDto)
+  email?: EmailCreateDto;
 
-  @IsUrl()
-  videoUrl?: string;
+  @IsString()
+  @IsOptional()
+  videoId?: string;
 }
 
 export class LevelCreateManyDto {
   @IsNotEmpty()
-  id: number;
-
-  @IsNotEmpty()
-  act: number;
+  @IsInt()
+  @Type(() => Number)
+  sequence: number;
 
   @IsNotEmpty()
   name: string;
@@ -43,10 +69,16 @@ export class LevelCreateManyDto {
   @IsNotEmpty()
   task: string;
 
-  solution?: string;
+  @IsOptional()
+  solution: string;
 
-  hint: string[];
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(3)
+  @IsArray()
+  hints: string[];
 
-  @IsUrl()
-  videoUrl?: string;
+  @IsString()
+  @IsOptional()
+  videoId?: string;
 }
