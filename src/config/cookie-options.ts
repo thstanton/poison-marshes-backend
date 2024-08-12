@@ -6,8 +6,8 @@ const secure: boolean =
   process.env.NODE_ENV !== 'local'
     ? process.env.COOKIE_SECURE === 'true'
     : false;
-const sameSite: boolean | 'none' | 'lax' | 'strict' =
-  process.env.NODE_ENV !== 'local' ? 'none' : 'lax';
+// const sameSite: boolean | 'none' | 'lax' | 'strict' =
+//   process.env.NODE_ENV !== 'local' ? 'none' : 'lax';
 
 export const accessCookieOptions: CookieOptions = {
   httpOnly: true,
@@ -16,7 +16,7 @@ export const accessCookieOptions: CookieOptions = {
   signed: true,
   domain,
   secure,
-  sameSite,
+  sameSite: 'lax',
 };
 
 export const refreshCookieOptions: CookieOptions = {
@@ -26,5 +26,5 @@ export const refreshCookieOptions: CookieOptions = {
   signed: true,
   domain,
   secure,
-  sameSite,
+  sameSite: 'lax',
 };
