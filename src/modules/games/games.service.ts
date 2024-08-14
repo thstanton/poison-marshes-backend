@@ -65,6 +65,36 @@ export class GamesService {
     });
   }
 
+  async getAll() {
+    return this.repository.getAll({
+      include: {
+        level: {
+          select: {
+            sequence: true,
+            actSequence: true,
+            name: true,
+          },
+        },
+        account: {
+          select: {
+            name: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { level: { actSequence: 'asc' } },
+        { level: { sequence: 'asc' } },
+      ],
+    });
+  }
+
+  // TODO: If levelling up to a new act, send endAct email
+  // TODO: Ensure people cannot level up with a QR code beyond the first level of an act that is not inProgress
   async levelUp(accountId: number, solution: string) {
     const game: Game = await this.repository.getOne({
       where: { accountId },
