@@ -21,6 +21,14 @@ export class EmailsRepository {
     return this.prisma.scheduledEmail.findMany(params);
   }
 
+  async getOne(params: {
+    where: Prisma.ScheduledEmailWhereUniqueInput;
+    select?: Prisma.ScheduledEmailSelect;
+    include?: Prisma.ScheduledEmailInclude;
+  }): Promise<any> {
+    return this.prisma.scheduledEmail.findUnique(params);
+  }
+
   async updateMany(params: {
     where: Prisma.ScheduledEmailWhereInput;
     data: Prisma.ScheduledEmailUpdateManyMutationInput;

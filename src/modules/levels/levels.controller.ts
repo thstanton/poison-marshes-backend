@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
@@ -71,6 +72,11 @@ export class LevelsController {
   @Get('next-level/:id')
   async getNextLevel(@Param('id') id: number) {
     return this.levelsService.getNextLevelId(id);
+  }
+
+  @Get('email/:id')
+  async getEmail(@Param('id', ParseIntPipe) id: number) {
+    return this.levelsService.getEmail(id);
   }
 
   @Put(':id')

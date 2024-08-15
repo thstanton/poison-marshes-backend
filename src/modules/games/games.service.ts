@@ -61,7 +61,14 @@ export class GamesService {
   async getCurrent(accountId: number): Promise<GameWithLevelAndAct> {
     return this.repository.getOne({
       where: { accountId },
-      include: { level: { include: { act: true } } },
+      include: {
+        level: {
+          include: {
+            act: true,
+            email: true,
+          },
+        },
+      },
     });
   }
 
