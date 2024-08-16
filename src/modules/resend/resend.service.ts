@@ -9,7 +9,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmailsRepository } from './emails.repository';
 import { ScheduledEmailDto } from './scheduled-email.dto';
 import { ScheduledEmailWithLevelEmail } from 'src/types/prisma-custom-types';
-import { Email } from '@prisma/client';
 
 @Injectable()
 export class ResendService extends Resend {
@@ -18,10 +17,6 @@ export class ResendService extends Resend {
   }
 
   private readonly logger = new Logger(ResendService.name);
-
-  async getOne(emailId: number): Promise<Email> {
-    return this.repository.getOne({ where: { id: emailId } });
-  }
 
   async emailSingleUser(email: EmailSendDto): Promise<CreateEmailResponse> {
     const response: CreateEmailResponse = await this.emails.send(email);
