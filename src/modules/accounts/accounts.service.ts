@@ -43,8 +43,8 @@ export class AccountsService {
               level: {
                 connect: {
                   sequence_actSequence: {
-                    sequence: 0,
-                    actSequence: 0,
+                    sequence: 1,
+                    actSequence: 1,
                   },
                 },
               },
