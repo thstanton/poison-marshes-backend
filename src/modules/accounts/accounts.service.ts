@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AccountsRepository } from './accounts.repository';
 import { BcryptService } from 'src/auth/bcrypt/bcrypt.service';
 import {
@@ -27,35 +27,102 @@ export class AccountsService {
     if (password) {
       hashedPassword = await this.bcryptService.hashPassword(password);
     }
-
-    const account = await this.repository.create({
-      data: {
-        name,
-        password: hashedPassword,
-        user: {
-          connectOrCreate: {
-            where: { email },
-            create: { email },
+    try {
+      const account = await this.repository.create({
+        data: {
+          name,
+          password: hashedPassword,
+          user: {
+            connectOrCreate: {
+              where: { email },
+              create: { email },
+            },
           },
-        },
-        game: {
-          create: {
-            level: {
-              connect: {
-                sequence_actSequence: {
-                  sequence: 0,
-                  actSequence: 0,
+          game: {
+            create: {
+              level: {
+                connect: {
+                  sequence_actSequence: {
+                    sequence: 0,
+                    actSequence: 0,
+                  },
                 },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    this.logger.debug(`New account for ${email}: ${account}`);
+      this.logger.debug(`New account for ${email}: ${account}`);
+      await this.resendService.emailSingleUser({
+        to: email,
+        from: 'The Poison Marshes <poisonmarshes@cliki.in>',
+        subject: 'Welcome to The Poison Marshes',
+        text: `
+        Dear ${name},
 
-    return account;
+        Welcome to The Poison Marshes!
+        Over the next week, you will become embroiled in a world of intrigue, secretive organisations and nefarious corporations - with the fate of the very village at stake...
+
+        The game will begin on Sunday.Here are a few things you need to know before you play:
+
+        Journal
+        When you log into the Poison Marshes website, you will see your journal. This gives you an overview of what's going on in the story, links to important evidence you will need and is the place where you will enter your solution to progress further into your quest. You can also look back through your previous chapters to remind yourself of the story so far.
+
+        QR Codes
+        Many of the tasks you are given will involve finding and scanning QR Codes that are hidden around the village. You will only be able to progress by scanning the correct QR code for the chapter you are on.
+
+        Emails
+        Throughout the game various characters will be keeping in touch with you by email - so keep an eye on your inbox! You can also read any emails you are sent on your journal. Emails that are part of the game will always come from an address which ends with '@cliki.in', and will have 'Part of The Poison Marshes' at the end of the email. You will not be able to reply to these emails!
+
+        Hints
+        If you get stuck, click the ? button on your journal page to be given a hint. If you're still stuck after reading all the hints, you will be able to send us a message.
+
+        Technical Support
+        This is a fairly experimental project - so technical snags are to be expected. If you're having technical issues, please email Tim (thstanton@proton.me) for support.
+        
+        Good luck!
+
+        Tim & Joe (The Poison Marshes Team)
+        `,
+        html: `
+        <p>Dear ${name},<p>
+
+        <h2>Welcome to The Poison Marshes!</h2>
+        <p>Over the next week, you will become embroiled in a world of intrigue, secretive organisations and nefarious corporations - with the fate of the very village at stake...</p>
+
+        <p>The game will begin on <strong>Sunday</strong> and you will receive an email when your first goes live.</p> 
+        
+        <p>Here are a few things you need to know before you play:</p>
+
+        <h2>Journal</h2>
+        <p>When you log into the Poison Marshes website, you will see your journal. This gives you an overview of what's going on in the story, links to important evidence you will need and is the place where you will enter your solution to progress further into your quest. You can also look back through your previous chapters to remind yourself of the story so far.</p>
+
+        <h2>QR Codes</h2>
+        <p>Many of the tasks you are given will involve finding and scanning QR Codes that are hidden around the village. You will only be able to progress by scanning the correct QR code for the chapter you are on.</p>
+
+        <h2>Emails</h2>
+        <p>Throughout the game various characters will be keeping in touch with you by email - so keep an eye on your inbox! You can also read any emails you are sent on your journal. Emails that are part of the game will always come from an address which ends with '<strong>@cliki.in</strong>', and will have '<strong>Part of The Poison Marshes</strong>' at the end of the email. You will not be able to reply to these emails!</p>
+
+        <h2>Hints</h2>
+        <p>If you get stuck, click the ? button on your journal page to be given a hint. If you're still stuck after reading all the hints, you will be able to send us a message.</p>
+
+        <h2>Technical Support</h2>
+        <p>This is a fairly experimental project - so technical snags are to be expected. If you're having technical issues, please email Tim (thstanton@proton.me) for support.</p>
+        
+        <p>Good luck!</p>
+
+        <p>Tim & Joe (The Poison Marshes Team)</p>
+        `,
+      });
+
+      return account;
+    } catch (error) {
+      throw new HttpException(
+        'Unable to create account',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async createSuperUser(accountDto: AccountCreateDto) {

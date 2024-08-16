@@ -29,6 +29,7 @@ export class GamesService {
   ): Promise<InitialiseLevelReturn> {
     return this.levelsService.initialiseLevel(
       game.levelId,
+      game.account.name,
       game.account.user.email,
     );
   }
@@ -126,6 +127,7 @@ export class GamesService {
             );
             this.levelsService.initialiseLevel(
               data.levelId,
+              data.account.name,
               data.account.user.email,
             );
           },

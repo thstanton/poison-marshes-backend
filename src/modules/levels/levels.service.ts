@@ -10,7 +10,6 @@ import {
   LevelWithActAndEmail,
   LevelWithEmail,
 } from 'src/types/prisma-custom-types';
-import { CreateEmailResponse } from 'src/types/resend-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
 
 @Injectable()
@@ -113,12 +112,9 @@ export class LevelsService {
     return false;
   }
 
-  private async sendEmail(email: EmailSendDto): Promise<CreateEmailResponse> {
-    return this.resendService.emailSingleUser(email);
-  }
-
   async initialiseLevel(
     levelId: number,
+    userName: string,
     userEmail: string,
   ): Promise<InitialiseLevelReturn> {
     const level: LevelWithActAndEmail = await this.repository.getById({
@@ -126,18 +122,21 @@ export class LevelsService {
       include: { act: true, email: true },
     });
 
+    const bodyPrepend = `Dear ${userName}`;
+    const bodyAppend = 'This email is part of The Poison Marshes';
+
     const email: EmailSendDto = {
       to: userEmail,
       from: level.email.from,
       subject: level.email.subject,
-      text: level.email.text,
-      html: level.email.html,
+      text: `${bodyPrepend} ${level.email.text} ${bodyAppend}`,
+      html: `<p>${bodyPrepend}</p>${level.email.html}<br /><br /><p><i>${bodyAppend}</i></p>`,
     };
 
     if (level.email) {
       if (level.act.inProgress) {
         try {
-          const emailResponse = await this.sendEmail(email);
+          const emailResponse = await this.resendService.emailSingleUser(email);
           return { level, email: 'sent', emailResponse: emailResponse };
         } catch (error) {
           this.logger.error(error);
