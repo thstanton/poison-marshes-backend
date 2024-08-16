@@ -49,7 +49,7 @@ export class LevelsService {
     });
   }
 
-  async getCompletedLevels(levelId: number): Promise<Level[]> {
+  async getCompletedLevels(levelId: number): Promise<LevelWithEmail[]> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
 
     const levels = await this.repository.getAll({
@@ -67,6 +67,9 @@ export class LevelsService {
             },
           },
         ],
+      },
+      include: {
+        email: true,
       },
       orderBy: [{ actSequence: 'desc' }, { sequence: 'desc' }],
     });
@@ -266,7 +269,7 @@ export class LevelsService {
     }) as Promise<LevelWithEmail>;
   }
 
-  async getEmail(emailId: number) {
-    return this.resendService.getOne(emailId);
+  async deleteLevel(id: number): Promise<Level> {
+    return this.repository.delete({ where: { id } }) as Promise<Level>;
   }
 }
