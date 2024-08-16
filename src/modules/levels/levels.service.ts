@@ -265,4 +265,8 @@ export class LevelsService {
       },
     }) as Promise<LevelWithEmail>;
   }
+
+  async getEmail(emailId: number) {
+    return this.resendService.getOne(emailId);
+  }
 }

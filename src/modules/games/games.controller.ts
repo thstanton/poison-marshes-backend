@@ -24,18 +24,18 @@ export class GamesController {
 
   private logger = new Logger(GamesController.name);
 
+  @Get()
+  @Roles('admin')
+  async getAll() {
+    return this.gamesService.getAll();
+  }
+
   @Post('create')
   @Roles('admin')
   async create(@Req() req: GuardedRequest) {
     this.logger.debug('Creating new game' + req.account);
     const { id }: AccountWithUserWithoutPassword = req.account;
     return this.gamesService.create(id);
-  }
-
-  @Get('current-level')
-  async currentLevel(@Req() req: GuardedRequest) {
-    const { id }: AccountWithUserWithoutPassword = req.account;
-    return this.gamesService.getCurrentLevel(id);
   }
 
   @Put('advance-level')
