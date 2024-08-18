@@ -82,14 +82,17 @@ export class ResendService extends Resend {
       },
     );
 
+    const bodyAppend =
+      'This email is part of The Poison Marshes. https://poison-marshes.alrewas-artsfest.co.uk';
+
     const batch: EmailSendDto[] = emails.map(
       (email: ScheduledEmailWithLevelEmail) => {
         return {
           from: email.level.email.from,
           to: email.to,
           subject: email.level.email.subject,
-          text: email.level.email.text,
-          html: email.level.email.html,
+          text: `${email.level.email.text}\n${bodyAppend}`,
+          html: `${email.level.email.html}<br><br>${bodyAppend}`,
         };
       },
     );

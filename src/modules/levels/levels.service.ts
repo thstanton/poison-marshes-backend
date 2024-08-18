@@ -132,7 +132,8 @@ export class LevelsService {
     });
 
     const bodyPrepend = `Dear ${userName}`;
-    const bodyAppend = 'This email is part of The Poison Marshes';
+    const bodyAppend =
+      'This email is part of The Poison Marshes. https://poison-marshes.alrewas-artsfest.co.uk';
 
     const email: EmailSendDto = {
       to: userEmail,
