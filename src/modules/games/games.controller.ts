@@ -38,6 +38,12 @@ export class GamesController {
     return this.gamesService.create(id);
   }
 
+  @Post('initialise-all')
+  @Roles('admin')
+  async initialiseAll() {
+    return this.gamesService.initialiseAllGames();
+  }
+
   @Put('advance-level')
   async advanceLevel(
     @Req() req: GuardedRequest,

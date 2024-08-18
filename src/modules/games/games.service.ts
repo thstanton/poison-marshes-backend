@@ -33,6 +33,22 @@ export class GamesService {
     );
   }
 
+  async initialiseAllGames() {
+    const games: GameWithAccountAndUser[] = await this.repository.getAll({
+      include: {
+        account: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+    const promises = games.map((game: GameWithAccountAndUser) =>
+      this.initialiseGame(game),
+    );
+    return Promise.all(promises);
+  }
+
   async create(accountId: number) {
     const game: GameWithAccountAndUser = await this.repository.createNew({
       data: {
