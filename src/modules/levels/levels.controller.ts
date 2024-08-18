@@ -98,4 +98,10 @@ export class LevelsController {
   async deleteLevel(@Param('id') id: number) {
     return this.levelsService.deleteLevel(id);
   }
+
+  @Delete(':id/email')
+  @Roles('admin')
+  async deleteLevelEmail(@Param('id') id: number) {
+    return this.levelsService.deleteLevelEmail(id);
+  }
 }

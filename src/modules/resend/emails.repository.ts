@@ -39,4 +39,8 @@ export class EmailsRepository {
   async deleteMany(params: { where: Prisma.ScheduledEmailWhereInput }) {
     return this.prisma.scheduledEmail.deleteMany(params);
   }
+
+  async delete(params: { where: Prisma.EmailWhereUniqueInput }) {
+    return this.prisma.email.delete(params);
+  }
 }

@@ -279,4 +279,8 @@ export class LevelsService {
   async deleteLevel(id: number): Promise<Level> {
     return this.repository.delete({ where: { id } }) as Promise<Level>;
   }
+
+  async deleteLevelEmail(id: number) {
+    return this.resendService.deleteEmail(id);
+  }
 }
