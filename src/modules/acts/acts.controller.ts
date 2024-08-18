@@ -16,6 +16,7 @@ import { ActUpdateDto } from './act-update.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles-guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { EmailCreateDto } from '../resend/email.dto';
 
 @Controller('acts')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,6 +43,14 @@ export class ActsController {
   @Put(':id')
   update(@Param('id') id: number, @Body() act: ActUpdateDto) {
     return this.actsService.update(id, act);
+  }
+
+  @Put(':id/email')
+  addEmail(
+    @Param('id') id: number,
+    @Body('endEmail') endEmail: EmailCreateDto,
+  ) {
+    return this.actsService.actAddEmail(id, endEmail);
   }
 
   @Delete(':id')

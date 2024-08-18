@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ActsRepository } from './acts.repository';
 import { ActCreateDto } from './act-create.dto';
 import { ActUpdateDto } from './act-update.dto';
+import { EmailCreateDto } from '../resend/email.dto';
 
 @Injectable()
 export class ActsService {
@@ -34,6 +35,13 @@ export class ActsService {
 
   async create(act: ActCreateDto) {
     return this.repository.create({ data: act });
+  }
+
+  async actAddEmail(id: number, email: EmailCreateDto) {
+    return this.repository.update({
+      where: { id },
+      data: { endEmail: { create: email } },
+    });
   }
 
   async update(id: number, act: ActUpdateDto) {

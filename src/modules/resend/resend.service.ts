@@ -122,4 +122,8 @@ export class ResendService extends Resend {
 
     this.logger.log(`Batch deleting sent scheduled emails: ${response}`);
   }
+
+  async deleteEmail(id: number) {
+    return this.repository.delete({ where: { id } });
+  }
 }

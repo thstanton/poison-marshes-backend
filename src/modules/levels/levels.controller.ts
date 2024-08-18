@@ -72,7 +72,7 @@ export class LevelsController {
 
   @Get('next-level/:id')
   async getNextLevel(@Param('id') id: number) {
-    return this.levelsService.getNextLevelId(id);
+    return this.levelsService.getNextLevel(id);
   }
 
   @Put(':id')
@@ -97,5 +97,11 @@ export class LevelsController {
   @Roles('admin')
   async deleteLevel(@Param('id') id: number) {
     return this.levelsService.deleteLevel(id);
+  }
+
+  @Delete('email/:emailId')
+  @Roles('admin')
+  async deleteLevelEmail(@Param('emailId') emailId: number) {
+    return this.levelsService.deleteLevelEmail(emailId);
   }
 }
