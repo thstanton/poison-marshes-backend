@@ -72,7 +72,7 @@ export class LevelsController {
 
   @Get('next-level/:id')
   async getNextLevel(@Param('id') id: number) {
-    return this.levelsService.getNextLevelId(id);
+    return this.levelsService.getNextLevel(id);
   }
 
   @Put(':id')

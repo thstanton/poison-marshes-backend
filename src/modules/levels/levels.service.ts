@@ -7,6 +7,7 @@ import { Level, Prisma } from '@prisma/client';
 import { LevelUpdateDto } from './level-update.dto';
 import { EmailUpdateDto } from '../resend/email-update.dto';
 import {
+  LevelWithActAndActEndEmail,
   LevelWithActAndEmail,
   LevelWithEmail,
 } from 'src/types/prisma-custom-types';
@@ -79,9 +80,7 @@ export class LevelsService {
     return levels;
   }
 
-  async getNextLevelId(
-    levelId: number,
-  ): Promise<{ id: number; sequence: number; actSequence: number }> {
+  async getNextLevel(levelId: number): Promise<LevelWithActAndActEndEmail> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
     return this.repository.getOne({
       where: {
@@ -100,10 +99,12 @@ export class LevelsService {
         ],
       },
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
-      select: {
-        id: true,
-        sequence: true,
-        actSequence: true,
+      include: {
+        act: {
+          include: {
+            endEmail: true,
+          },
+        },
       },
     });
   }

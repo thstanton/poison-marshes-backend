@@ -68,9 +68,8 @@ model Act {
   startDate       DateTime
   inProgress      Boolean  @default(false)
   preStartMessage String?
-  endEmail        Email?   @relation(fields: [emailId], references: [id])
+  endEmail        Email?
   levels          Level[]
-  emailId         Int?
 }
 
 model Email {
@@ -83,7 +82,8 @@ model Email {
   levelId   Int?     @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Act       Act[]
+  act       Act?     @relation(fields: [actId], references: [id])
+  actId     Int?     @unique
 }
 
 model ScheduledEmail {

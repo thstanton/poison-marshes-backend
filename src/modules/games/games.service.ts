@@ -10,15 +10,19 @@ import { LevelsService } from '../levels/levels.service';
 import {
   GameWithAccountAndUser,
   GameWithLevelAndAct,
+  GameWithLevelAndActAndActEndEmail,
   GameWithUserEmail,
+  LevelWithActAndActEndEmail,
 } from 'src/types/prisma-custom-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
+import { ResendService } from '../resend/resend.service';
 
 @Injectable()
 export class GamesService {
   constructor(
     private repository: GamesRepository,
     private levelsService: LevelsService,
+    private resendService: ResendService,
   ) {}
 
   private readonly logger = new Logger(GamesService.name);
@@ -119,16 +123,21 @@ export class GamesService {
   // TODO: If levelling up to a new act, send endAct email
   async levelUp(accountId: number, solution: string) {
     // Fetch current game and very it exists
-    const game: GameWithLevelAndAct = await this.repository.getOne({
-      where: { accountId },
-      include: {
-        level: {
-          include: {
-            act: true,
+    const game: GameWithLevelAndActAndActEndEmail =
+      await this.repository.getOne({
+        where: { accountId },
+        include: {
+          level: {
+            include: {
+              act: {
+                include: {
+                  endEmail: true,
+                },
+              },
+            },
           },
         },
-      },
-    });
+      });
 
     if (!game) throw new NotFoundException('Game not found');
 
@@ -148,8 +157,8 @@ export class GamesService {
 
     // Get next level
     const currLevel = game.level;
-    const nextLevel: { id: number; sequence: number; actSequence: number } =
-      await this.levelsService.getNextLevelId(currLevel.id);
+    const nextLevel: LevelWithActAndActEndEmail =
+      await this.levelsService.getNextLevel(currLevel.id);
 
     // Verify next level is allowed - can progress within inProgress act, but only to level 1 of !inProgress act
     const nextLevelIsAllowed: boolean =
@@ -180,6 +189,23 @@ export class GamesService {
             data.account.name,
             data.account.user.email,
           );
+
+          // If end of act, send endAct email
+          if (
+            nextLevel.actSequence > currLevel.actSequence &&
+            currLevel.act.endEmail
+          ) {
+            this.logger.log(
+              `Sending endAct email for account: ${data.accountId}, User: ${data.account.user.email}`,
+            );
+            this.resendService.emailSingleUser({
+              from: currLevel.act.endEmail.from,
+              to: data.account.user.email,
+              subject: currLevel.act.endEmail.subject,
+              text: currLevel.act.endEmail.text,
+              html: currLevel.act.endEmail.html,
+            });
+          }
         },
       );
       return { level: nextLevel };
