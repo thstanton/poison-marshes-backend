@@ -17,6 +17,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/roles-guard/roles.guard';
 import { LevelUpdateDto } from './level-update.dto';
 import { EmailCreateDto } from '../resend/email.dto';
+import { EmailUpdateDto } from '../resend/email-update.dto';
 
 @Controller('levels')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -81,6 +82,15 @@ export class LevelsController {
     @Body('level') level: LevelUpdateDto,
   ) {
     return this.levelsService.updateLevel(id, level);
+  }
+
+  @Put(':id/email')
+  @Roles('admin')
+  async updateLevelEmail(
+    @Param('id') id: number,
+    @Body('email') email: EmailUpdateDto,
+  ) {
+    return this.levelsService.updateLevelEmail(id, email);
   }
 
   @Delete(':id')

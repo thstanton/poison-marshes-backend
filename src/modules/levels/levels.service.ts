@@ -31,8 +31,12 @@ export class LevelsService {
     });
   }
 
-  async getAll(): Promise<Level[]> {
+  async getAll(): Promise<LevelWithActAndEmail[]> {
     return this.repository.getAll({
+      include: {
+        act: true,
+        email: true,
+      },
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
     });
   }
@@ -75,7 +79,9 @@ export class LevelsService {
     return levels;
   }
 
-  async getNextLevelId(levelId: number): Promise<{ id: number }> {
+  async getNextLevelId(
+    levelId: number,
+  ): Promise<{ id: number; sequence: number; actSequence: number }> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
     return this.repository.getOne({
       where: {
@@ -96,6 +102,8 @@ export class LevelsService {
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
       select: {
         id: true,
+        sequence: true,
+        actSequence: true,
       },
     });
   }
