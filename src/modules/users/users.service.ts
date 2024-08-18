@@ -41,12 +41,13 @@ export class UsersService {
   }
 
   async emailAllUsers(email: EmailCreateDto): Promise<CreateBatchResponse> {
-    const users: string[] = await this.repository.getAll({
+    const users: { email: string }[] = await this.repository.getAll({
       select: { email: true },
     });
+    const addresses: string[] = users.map((user) => user.email);
     const response: CreateBatchResponse = await this.resendService.emailGroup(
       email,
-      users,
+      addresses,
     );
 
     return response;
