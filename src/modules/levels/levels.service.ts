@@ -75,7 +75,9 @@ export class LevelsService {
     return levels;
   }
 
-  async getNextLevelId(levelId: number): Promise<{ id: number }> {
+  async getNextLevelId(
+    levelId: number,
+  ): Promise<{ id: number; sequence: number; actSequence: number }> {
     const { sequence, actSequence }: Level = await this.getById(levelId);
     return this.repository.getOne({
       where: {
@@ -96,6 +98,8 @@ export class LevelsService {
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
       select: {
         id: true,
+        sequence: true,
+        actSequence: true,
       },
     });
   }

@@ -13,7 +13,6 @@ import {
   GameWithUserEmail,
 } from 'src/types/prisma-custom-types';
 import { InitialiseLevelReturn } from 'src/types/custom-types';
-import { Game } from '@prisma/client';
 
 @Injectable()
 export class GamesService {
@@ -102,48 +101,79 @@ export class GamesService {
   }
 
   // TODO: If levelling up to a new act, send endAct email
-  // TODO: Ensure people cannot level up with a QR code beyond the first level of an act that is not inProgress
   async levelUp(accountId: number, solution: string) {
-    const game: Game = await this.repository.getOne({
+    // Fetch current game and very it exists
+    const game: GameWithLevelAndAct = await this.repository.getOne({
       where: { accountId },
+      include: {
+        level: {
+          include: {
+            act: true,
+          },
+        },
+      },
     });
 
     if (!game) throw new NotFoundException('Game not found');
 
+    // Check if solution is correct
     const solutionIsCorrect = await this.levelsService.trySolution(
       game.levelId,
       solution,
     );
 
-    if (solutionIsCorrect) {
-      try {
-        const nextLevel: { id: number } =
-          await this.levelsService.getNextLevelId(game.levelId);
-
-        await this.increaseLevel(game.id, nextLevel.id).then(
-          (data: GameWithUserEmail) => {
-            this.logger.log(
-              `Increased level for Game: ${data.accountId}, User: ${data.account.user.email}`,
-            );
-            this.levelsService.initialiseLevel(
-              data.levelId,
-              data.account.name,
-              data.account.user.email,
-            );
-          },
-        );
-
-        return { level: nextLevel };
-      } catch (error) {
-        throw new HttpException(
-          'Cannot increase level',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } else {
+    if (!solutionIsCorrect) {
+      this.logger.log(accountId + ': Incorrect solution - ' + solution);
       throw new HttpException(
         'Incorrect solution',
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    // Get next level
+    const currLevel = game.level;
+    const nextLevel: { id: number; sequence: number; actSequence: number } =
+      await this.levelsService.getNextLevelId(currLevel.id);
+
+    // Verify next level is allowed - can progress within inProgress act, but only to level 1 of !inProgress act
+    const nextLevelIsAllowed: boolean =
+      (currLevel.actSequence === nextLevel.actSequence &&
+        currLevel.act.inProgress) ||
+      (nextLevel.actSequence === currLevel.actSequence + 1 &&
+        nextLevel.sequence === 1);
+
+    if (!nextLevelIsAllowed) {
+      this.logger.error(
+        `Account ${accountId}: Cannot increase level - trying to progress within !inProgress act (${currLevel.id} -> ${nextLevel.id})`,
+      );
+      throw new HttpException(
+        'Cannot increase level yet - act on pause',
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    }
+
+    // Increase level
+    try {
+      await this.increaseLevel(game.id, nextLevel.id).then(
+        (data: GameWithUserEmail) => {
+          this.logger.log(
+            `Increased level for account: ${data.accountId}, User: ${data.account.user.email}`,
+          );
+          this.levelsService.initialiseLevel(
+            data.levelId,
+            data.account.name,
+            data.account.user.email,
+          );
+        },
+      );
+      return { level: nextLevel };
+    } catch (error) {
+      this.logger.error(
+        `${error} when trying to increase level for account ${accountId}`,
+      );
+      throw new HttpException(
+        'Cannot increase level: ' + error,
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
