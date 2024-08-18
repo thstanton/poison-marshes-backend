@@ -99,9 +99,9 @@ export class LevelsController {
     return this.levelsService.deleteLevel(id);
   }
 
-  @Delete(':id/email')
+  @Delete('email/:emailId')
   @Roles('admin')
-  async deleteLevelEmail(@Param('id') id: number) {
-    return this.levelsService.deleteLevelEmail(id);
+  async deleteLevelEmail(@Param('emailId') emailId: number) {
+    return this.levelsService.deleteLevelEmail(emailId);
   }
 }
