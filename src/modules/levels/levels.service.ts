@@ -31,8 +31,12 @@ export class LevelsService {
     });
   }
 
-  async getAll(): Promise<Level[]> {
+  async getAll(): Promise<LevelWithActAndEmail[]> {
     return this.repository.getAll({
+      include: {
+        act: true,
+        email: true,
+      },
       orderBy: [{ actSequence: 'asc' }, { sequence: 'asc' }],
     });
   }
