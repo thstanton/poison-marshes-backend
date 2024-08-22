@@ -57,4 +57,26 @@ export class AccountsController {
   async makeAdmin(@Param('id', ParseIntPipe) id: number) {
     return this.accountsService.makeAdmin(id);
   }
+
+  @Put('/password-reset/:accountId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async resetPassword(@Param('accountId', ParseIntPipe) accountId: number) {
+    return this.accountsService.resetPassword(accountId);
+  }
+
+  @Put('/password-update/:accountId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updatePassword(
+    @Param('accountId', ParseIntPipe) accountId: number,
+    @Body('oldPassword') oldPassword: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.accountsService.updatePassword(
+      accountId,
+      oldPassword,
+      newPassword,
+    );
+  }
 }
